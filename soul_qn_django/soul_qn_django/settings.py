@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -27,7 +26,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,7 +35,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'user_about.apps.UserAboutConfig',
+    'user_about.apps.UserAboutConfig',  # 处理用户信息，包括登陆注册、群组管理等
+    'analyse_qn.apps.AnalyseQnConfig',  # 处理问卷分析
+    'answer_qn.apps.AnswerQnConfig',  # 处理问卷答题
+    'edit_qn.apps.EditQnConfig',  # 处理问卷编辑
+    'mainpage.apps.MainpageConfig',  # 处理主页
 ]
 
 MIDDLEWARE = [
@@ -71,17 +73,30 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "soul_qn_django.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# MySQL数据库配置
+mysql_ENGINE = 'django.db.backends.mysql'  # 这个不需要修改
+mysql_NAME = 'lab2'  # 这个自己创建的数据库的名称
+mysql_USER = 'root'  # 数据库的账户，如果是本地的数据库一般为 root
+mysql_PASSWORD = 'zhouxiao123!'  # 数据库账户对应的密码
+mysql_HOST = 'bj-cynosdbmysql-grp-rc5v68qm.sql.tencentcdb.com'  # 一般购买的云数据库对应路由和这个很类似，这是阿里云数据库的路由，
+# 如果是本地的mysql一般默认为 127.0.0.1
+# 如果是自己的服务器安装的mysql一般默认为服务器的公网IP
+mysql_PORT = '21656'  # 这个除非自己特别设置过，否则本地mysql和购买的云数据库端口都是默认3306，当然如果是自己在服务器上安装的mysql可以修改端口，
+# 但是务必保证该端口对应的防火墙是打开的
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': mysql_ENGINE,
+        'NAME': mysql_NAME,
+        'USER': mysql_USER,
+        'PASSWORD': mysql_PASSWORD,
+        'HOST': mysql_HOST,
+        'PORT': mysql_PORT,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -101,18 +116,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Shanghai"
 
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
