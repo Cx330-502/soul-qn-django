@@ -40,13 +40,14 @@ INSTALLED_APPS = [
     'answer_qn.apps.AnswerQnConfig',  # 处理问卷答题
     'edit_qn.apps.EditQnConfig',  # 处理问卷编辑
     'mainpage.apps.MainpageConfig',  # 处理主页
+    'Qn.apps.QnConfig',  # 处理问卷数据 （所有表都放在Qn下的models文件中）
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    # "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -78,7 +79,7 @@ WSGI_APPLICATION = "soul_qn_django.wsgi.application"
 
 # MySQL数据库配置
 mysql_ENGINE = 'django.db.backends.mysql'  # 这个不需要修改
-mysql_NAME = 'lab2'  # 这个自己创建的数据库的名称
+mysql_NAME = 'soul_qn'  # 这个自己创建的数据库的名称
 mysql_USER = 'root'  # 数据库的账户，如果是本地的数据库一般为 root
 mysql_PASSWORD = 'zhouxiao123!'  # 数据库账户对应的密码
 mysql_HOST = 'bj-cynosdbmysql-grp-rc5v68qm.sql.tencentcdb.com'  # 一般购买的云数据库对应路由和这个很类似，这是阿里云数据库的路由，

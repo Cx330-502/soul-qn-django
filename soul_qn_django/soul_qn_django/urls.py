@@ -23,4 +23,5 @@ urlpatterns = [
     path("edit_qn/", include(('edit_qn.urls', 'edit_qn'))),
     path("mainpage/", include(('mainpage.urls', 'mainpage'))),
     path("user_about/", include(('user_about.urls', 'user_about'))),
+    path("Qn/", include(('Qn.urls', 'Qn'))),
 ]
