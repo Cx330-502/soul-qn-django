@@ -1,4 +1,21 @@
+import time
+
+import jwt
+from django.conf import settings
 from django.db import models
+
+
+def auth_token(token):
+    salt = settings.SECRET_KEY
+    try:
+        payload = jwt.decode(token, salt, algorithms=['HS256'], verify=True)
+        exp_time = payload['exp']
+        if time.time() > exp_time:
+            raise Exception('Token has expired')
+    except Exception as e:
+        return False
+    if User.objects.filter(id=payload['id']).exists():
+        return User.objects.get(id=payload['id'])
 
 
 class User(models.Model):
@@ -6,6 +23,16 @@ class User(models.Model):
     username = models.CharField("用户名", max_length=100)
     password = models.CharField("密码", max_length=20)
     email = models.EmailField("邮箱")
+
+    def create_token(self, timeout):
+        salt = settings.SECRET_KEY
+        headers = {
+            'typ': 'jwt',
+            'alg': 'HS256'
+        }
+        payload = {'id': self.id, 'username': self.username, 'exp': time.time() + timeout}
+        token = jwt.encode(payload=payload, key=salt, algorithm='HS256', headers=headers)
+        return token
 
 
 class Organization(models.Model):

@@ -17,11 +17,11 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("analyse_qn/", include(('analyse_qn.urls', 'analyse_qn'))),
-    path("answer_qn/", include(('answer_qn.urls', 'answer_qn'))),
-    path("edit_qn/", include(('edit_qn.urls', 'edit_qn'))),
-    path("mainpage/", include(('mainpage.urls', 'mainpage'))),
-    path("user_about/", include(('user_about.urls', 'user_about'))),
-    path("Qn/", include(('Qn.urls', 'Qn'))),
+    path("api/admin/", admin.site.urls),
+    path("api/analyse_qn/", include(('analyse_qn.urls', 'analyse_qn'))),
+    path("api/answer_qn/", include(('answer_qn.urls', 'answer_qn'))),
+    path("api/edit_qn/", include(('edit_qn.urls', 'edit_qn'))),
+    path("api/mainpage/", include(('mainpage.urls', 'mainpage'))),
+    path("api/user_about/", include(('user_about.urls', 'user_about'))),
+    path("api/Qn/", include(('Qn.urls', 'Qn'))),
 ]
