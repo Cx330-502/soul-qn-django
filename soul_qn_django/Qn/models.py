@@ -79,7 +79,10 @@ class Organization_create_Questionnaire(models.Model):
 
 class Question(models.Model):
     # Question表项
-    type = models.IntegerField("问题类型")  # 0表示选择,1表示文本
+    # 1表示单选,2表示多选,3表示文本,4表示文件
+    # 5表示图片单选,6表示图片多选,7表示图片文本,8表示图片文件
+    # 9表示视频单选,10表示视频多选,11表示视频文本,12表示视频文件
+    type = models.IntegerField("问题类型")
     description = models.CharField("问题描述", max_length=200)
     questionnaire_id = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     necessary = models.BooleanField("问题是否必答")  # True表示必答,False表示非必答
@@ -88,22 +91,12 @@ class Question(models.Model):
     order = models.IntegerField("问题顺序")
     change_line = models.IntegerField("问题是否换行")  # 0表示不换行,1表示换行
     score = models.IntegerField("问题分数")
-
-
-class Choices(models.Model):
-    # Choices表项
-    question_id = models.ForeignKey(Question, on_delete=models.CASCADE, primary_key=True)
-    content = models.CharField("选项内容", max_length=400)
-    type = models.IntegerField("选项类型")  # 0表示单选,1表示多选
-    answer = models.CharField("选项答案", max_length=200)  # 以 "===" 分割
-
-
-class Texts(models.Model):
-    # Texts表项
-    question_id = models.ForeignKey(Question, on_delete=models.CASCADE, primary_key=True)
-    content = models.TextField("文本内容")
-    type = models.IntegerField("选项类型")
-    answer = models.TextField("文本答案")
+    content1 = models.CharField("问题内容1", max_length=400)  # 选择题选项 以 "===" 分割
+    content2 = models.TextField("问题内容2")  # 文本题阅读材料
+    video = models.FileField("问题视频")
+    image = models.ImageField("问题图片")
+    answer1 = models.CharField("问题答案1", max_length=200)  # 选择题答案 以 "===" 分割
+    answer2 = models.TextField("问题答案2")  # 文本题答案
 
 
 class Answer_sheet(models.Model):
