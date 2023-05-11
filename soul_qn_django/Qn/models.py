@@ -13,6 +13,7 @@ def auth_token(token):
         if time.time() > exp_time:
             raise Exception('Token has expired')
     except Exception as e:
+        print(e)
         return False
     if User.objects.filter(id=payload['id']).exists():
         return User.objects.get(id=payload['id'])
@@ -43,7 +44,12 @@ class Organization(models.Model):
 class Questionnaire(models.Model):
     # Questionnaire表项，含问卷名和密码，均为字符串属性，并设置最大长度
     name = models.CharField("问卷名", max_length=100)
-    type = models.IntegerField("问卷类型")  #
+    # 问卷类型，0表示普通，1表示考试
+    type = models.IntegerField("问卷类型")
+    # 问卷是否公开，false表示不公开，true表示公开
+    public = models.BooleanField("问卷是否公开")
+    # 问卷权限 0表示不需要登录 1表示需要登录 2表示需要登录但匿名 3表示仅组织内可填写 4表示仅组织内可填写但匿名
+    permission = models.IntegerField("问卷权限")
     collection_num = models.IntegerField("问卷收集人数")
     state = models.IntegerField("问卷状态")
     # 0表示审核中,1表示已发布,-1表示发布失败,2表示尚未开始,-2表示已结束
@@ -80,8 +86,8 @@ class Organization_create_Questionnaire(models.Model):
 class Question(models.Model):
     # Question表项
     # 1表示单选,2表示多选,3表示文本,4表示文件
-    # 5表示图片单选,6表示图片多选,7表示图片文本,8表示图片文件
-    # 9表示视频单选,10表示视频多选,11表示视频文本,12表示视频文件
+    # 11表示图片单选,12表示图片多选,13表示图片文本,14表示图片文件
+    # 21表示视频单选,22表示视频多选,23表示视频文本,24表示视频文件
     type = models.IntegerField("问题类型")
     description = models.CharField("问题描述", max_length=200)
     questionnaire_id = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
