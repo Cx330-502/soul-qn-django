@@ -61,6 +61,16 @@ class Questionnaire(models.Model):
     title = models.CharField("问卷标题", max_length=100)
     description = models.CharField("问卷描述", max_length=100)
 
+    def info(self):
+        return {'id': self.id, 'name': self.name,
+                'type': self.type, 'public': self.public,
+                'permission': self.permission, 'collection_num': self.collection_num,
+                'state': self.state, 'release_time': self.release_time,
+                'finish_time': self.finish_time, 'start_time': self.start_time,
+                'duration': self.duration, 'password': self.password,
+                'title': self.title, 'description': self.description,
+                'questions': []}
+
 
 class Organization_2_User(models.Model):
     # Organization_2_User表项，含组织id和用户id，
@@ -83,6 +93,10 @@ class Organization_create_Questionnaire(models.Model):
     necessary = models.BooleanField("问卷是否必填")  # True表示必填,False表示非必填
 
 
+def question_file_upload_to(instance, filename):
+    return '/'.join(['questionnaire+', instance.questionnaire_id, './', 'question+', instance.id, './', filename])
+
+
 class Question(models.Model):
     # Question表项
     # 1表示单选,2表示多选,3表示文本,4表示文件
@@ -99,10 +113,22 @@ class Question(models.Model):
     score = models.IntegerField("问题分数")
     content1 = models.CharField("问题内容1", max_length=400)  # 选择题选项 以 "===" 分割
     content2 = models.TextField("问题内容2")  # 文本题阅读材料
-    video = models.FileField("问题视频")
-    image = models.ImageField("问题图片")
+    video = models.FileField("问题视频", upload_to=question_file_upload_to, null=True, blank=True)
+    image = models.ImageField("问题图片", upload_to=question_file_upload_to, null=True, blank=True)
     answer1 = models.CharField("问题答案1", max_length=200)  # 选择题答案 以 "===" 分割
     answer2 = models.TextField("问题答案2")  # 文本题答案
+
+    def info(self):
+        video = self.video.url if self.video else None
+        image = self.image.url if self.image else None
+        return {'id': self.id, 'type': self.type,
+                'description': self.description, 'questionnaire_id': self.questionnaire_id,
+                'necessary': self.necessary, 'surface': self.surface,
+                'width': self.width, 'order': self.order,
+                'change_line': self.change_line, 'score': self.score,
+                'content1': self.content1, 'content2': self.content2,
+                'video': video, 'image': image,
+                'answer1': self.answer1, 'answer2': self.answer2}
 
 
 class Answer_sheet(models.Model):
