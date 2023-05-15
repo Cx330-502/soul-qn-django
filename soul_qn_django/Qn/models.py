@@ -1,8 +1,14 @@
 import time
 
 import jwt
+import qrcode
 from django.conf import settings
+from django.core import signing
+from django.core.files import File
 from django.db import models
+from PIL import Image
+
+qn_url = 'http://127.0.0.1:3306/this_is_a_questionnaire/'
 
 
 def auth_token(token):
@@ -41,6 +47,20 @@ class Organization(models.Model):
     name = models.CharField("组织名", max_length=100)
 
 
+# 解密问卷链接
+def decode_link(link):
+    value = link.split('/')[-1]
+    try:
+        qn_id = signing.loads(value)
+    except signing.BadSignature:
+        return False
+    return qn_id
+
+
+def questionnaire_file_upload_to(instance, filename):
+    return 'questionnaire/' + str(instance.id) + '/QRcode/' + filename
+
+
 class Questionnaire(models.Model):
     # Questionnaire表项，含问卷名和密码，均为字符串属性，并设置最大长度
     name = models.CharField("问卷名", max_length=100)
@@ -60,6 +80,8 @@ class Questionnaire(models.Model):
     password = models.CharField("问卷密码", max_length=20)
     title = models.CharField("问卷标题", max_length=100)
     description = models.CharField("问卷描述", max_length=100)
+    link = models.CharField("问卷链接", max_length=100)
+    qr_code = models.ImageField("二维码", upload_to=questionnaire_file_upload_to, null=True)
 
     def info(self):
         return {'id': self.id, 'name': self.name,
@@ -70,6 +92,29 @@ class Questionnaire(models.Model):
                 'duration': self.duration, 'password': self.password,
                 'title': self.title, 'description': self.description,
                 'questions': []}
+
+    # 生成问卷链接
+    def generate_link(self):
+        value = signing.dumps(self.id)
+        return qn_url + value
+
+    def generate_qr_code(self):
+        if self.link is None:
+            self.link = self.generate_link()
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(self.link)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        image_path = 'questionnaire/' + str(self.id) + '/QRcode/' + str(self.id) + '.png'
+        img.save(image_path)
+        with open(image_path, 'rb') as f:
+            self.qr_code = File(f)
+            self.save()
 
 
 class Organization_2_User(models.Model):
@@ -94,7 +139,7 @@ class Organization_create_Questionnaire(models.Model):
 
 
 def question_file_upload_to(instance, filename):
-    return '/'.join(['questionnaire+', instance.questionnaire_id, './', 'question+', instance.id, './', filename])
+    return '/'.join(['questionnaire+', instance.questionnaire_id, '/', 'question+', instance.id, '/', filename])
 
 
 class Question(models.Model):
