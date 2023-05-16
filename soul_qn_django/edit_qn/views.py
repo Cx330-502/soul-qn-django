@@ -1,6 +1,7 @@
 import base64
 import os
-
+import requests
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -43,7 +44,7 @@ def preview_qn(request):
     user = auth_token(token)
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
-    example_id = body.get("example_id")
+    example_id = body.get("qn_id")
     if not example_id:
         return JsonResponse({'errno': 1, 'errmsg': '无问卷模板'})
     if not Questionnaire.objects.filter(public=True).filter(id=example_id).exists():
@@ -122,6 +123,7 @@ def save_qn(request):
     body = json.loads(request.body)
     token = body.get("token")
     user = auth_token(token)
+    qn = None
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     qn_id = body.get("qn_id")
@@ -202,7 +204,7 @@ def save_qn(request):
             question_surface = None
         question_width = question.get("width")
         if not question_width:
-            question_width = None
+            question_width = 200
         question_order = question.get("order")
         if not question_order:
             return JsonResponse({'errno': 1007, 'errmsg': '问题序号不能为空'})
@@ -218,21 +220,37 @@ def save_qn(request):
         question_content2 = question.get("content2")
         if not question_content2:
             question_content2 = None
-        try:
-            question_video = request.FILES.get(f'video_{question_order}')
-        except:
+        question_video = question.get("video")
+        if not question_video:
             question_video = None
-        try:
-            question_image = request.FILES.get(f'image_{question_order}')
-        except:
+        else:
+            try:
+                with open(question_video, 'rb') as f:
+                    file_content = f.read()
+                    file_name = f.name.split('/')[-1]
+                question_video = ContentFile(file_content, file_name)
+                print(file_name)
+            except Exception as e:
+                print(e)
+                question_video = None
+        question_image = question.get("image")
+        if not question_image:
             question_image = None
+        else:
+            try:
+                with open(question_image, 'rb') as f:
+                    file_content = f.read()
+                    file_name = f.name
+                question_image = ContentFile(file_content, file_name)
+            except:
+                question_image = None
         question_answer1 = question.get("answer1")
         if not question_answer1:
             question_answer1 = None
         question_answer2 = question.get("answer2")
         if not question_answer2:
             question_answer2 = None
-        question = Question.objects.create(questionnaire_id=qn, type=question_type,
+        question = Question.objects.create(questionnaire=qn, type=question_type,
                                            description=question_description, necessary=question_necessary,
                                            surface=question_surface, width=question_width, order=question_order,
                                            change_line=question_change_line, score=question_score,

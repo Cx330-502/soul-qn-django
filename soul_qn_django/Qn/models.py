@@ -1,3 +1,4 @@
+import os
 import time
 
 import jwt
@@ -6,7 +7,7 @@ from django.conf import settings
 from django.core import signing
 from django.core.files import File
 from django.db import models
-from PIL import Image
+from django.conf import settings
 
 qn_url = 'http://127.0.0.1:3306/this_is_a_questionnaire/'
 
@@ -58,7 +59,10 @@ def decode_link(link):
 
 
 def questionnaire_file_upload_to(instance, filename):
-    return 'questionnaire/' + str(instance.id) + '/QRcode/' + filename
+    path = os.path.join(settings.MEDIA_ROOT, 'questionnaire/', str(instance.id), '/file/')
+    os.makedirs(path, exist_ok=True)
+    path = os.path.join(path, filename)
+    return path
 
 
 class Questionnaire(models.Model):
@@ -67,20 +71,20 @@ class Questionnaire(models.Model):
     # 问卷类型，0表示普通，1表示考试
     type = models.IntegerField("问卷类型")
     # 问卷是否公开，false表示不公开，true表示公开
-    public = models.BooleanField("问卷是否公开")
+    public = models.BooleanField("问卷是否公开", default=True)
     # 问卷权限 0表示不需要登录 1表示需要登录 2表示需要登录但匿名 3表示仅组织内可填写 4表示仅组织内可填写但匿名
-    permission = models.IntegerField("问卷权限")
-    collection_num = models.IntegerField("问卷收集人数")
-    state = models.IntegerField("问卷状态")
+    permission = models.IntegerField("问卷权限", default=0)
+    collection_num = models.IntegerField("问卷收集人数", default=0)
+    state = models.IntegerField("问卷状态", default=0)
     # 0表示审核中,1表示已发布,-1表示发布失败,2表示尚未开始,-2表示已结束
-    release_time = models.DateTimeField("问卷发布时间")
-    finish_time = models.DateTimeField("问卷截止时间")
-    start_time = models.DateTimeField("问卷开始时间")
-    duration = models.IntegerField("问卷持续时间")  # 单位为秒
-    password = models.CharField("问卷密码", max_length=20)
+    release_time = models.DateTimeField("问卷发布时间", null=True)
+    finish_time = models.DateTimeField("问卷截止时间", null=True)
+    start_time = models.DateTimeField("问卷开始时间", null=True)
+    duration = models.IntegerField("问卷持续时间", null=True)  # 单位为秒
+    password = models.CharField("问卷密码", max_length=20, null=True)
     title = models.CharField("问卷标题", max_length=100)
-    description = models.CharField("问卷描述", max_length=100)
-    link = models.CharField("问卷链接", max_length=100)
+    description = models.CharField("问卷描述", max_length=100, null=True)
+    link = models.CharField("问卷链接", max_length=100, null=True)
     qr_code = models.ImageField("二维码", upload_to=questionnaire_file_upload_to, null=True)
 
     def info(self):
@@ -139,7 +143,12 @@ class Organization_create_Questionnaire(models.Model):
 
 
 def question_file_upload_to(instance, filename):
-    return '/'.join(['questionnaire+', instance.questionnaire_id, '/', 'question+', instance.id, '/', filename])
+    filename = os.path.basename(filename)
+    path = os.path.join(settings.MEDIA_ROOT + 'questionnaire/' + str(instance.questionnaire_id) + '/question/',
+                        str(instance.order) + '/')
+    os.makedirs(path, exist_ok=True)
+    path = os.path.join(path, filename)
+    return path
 
 
 class Question(models.Model):
@@ -148,20 +157,20 @@ class Question(models.Model):
     # 11表示图片单选,12表示图片多选,13表示图片文本,14表示图片文件
     # 21表示视频单选,22表示视频多选,23表示视频文本,24表示视频文件
     type = models.IntegerField("问题类型")
-    description = models.CharField("问题描述", max_length=200)
-    questionnaire_id = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
-    necessary = models.BooleanField("问题是否必答")  # True表示必答,False表示非必答
-    surface = models.CharField("问题表面", max_length=200)
+    description = models.CharField("问题描述", max_length=200, null=True)
+    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
+    necessary = models.BooleanField("问题是否必答", default=False)  # True表示必答,False表示非必答
+    surface = models.CharField("问题表面", max_length=200, null=True)
     width = models.IntegerField("问题宽度")
     order = models.IntegerField("问题顺序")
     change_line = models.IntegerField("问题是否换行")  # 0表示不换行,1表示换行
-    score = models.IntegerField("问题分数")
-    content1 = models.CharField("问题内容1", max_length=400)  # 选择题选项 以 "===" 分割
-    content2 = models.TextField("问题内容2")  # 文本题阅读材料
+    score = models.IntegerField("问题分数", null=True)
+    content1 = models.CharField("问题内容1", max_length=400, null=True)  # 选择题选项 以 "===" 分割
+    content2 = models.TextField("问题内容2", null=True)  # 文本题阅读材料
     video = models.FileField("问题视频", upload_to=question_file_upload_to, null=True, blank=True)
     image = models.ImageField("问题图片", upload_to=question_file_upload_to, null=True, blank=True)
-    answer1 = models.CharField("问题答案1", max_length=200)  # 选择题答案 以 "===" 分割
-    answer2 = models.TextField("问题答案2")  # 文本题答案
+    answer1 = models.CharField("问题答案1", max_length=200, null=True)  # 选择题答案 以 "===" 分割
+    answer2 = models.TextField("问题答案2", null=True)  # 文本题答案
 
     def info(self):
         video = self.video.url if self.video else None
@@ -180,19 +189,19 @@ class Answer_sheet(models.Model):
     # Answer_sheet表项，含问卷名和密码，均为字符串属性，并设置最大长度
     questionnaire_id = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     answerer_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    submit_time = models.DateTimeField("问卷提交时间")
-    duration = models.IntegerField("问卷持续时间")  # 单位为秒
-    score = models.IntegerField("问卷分数")
-    state = models.IntegerField("问卷状态")  # 0表示未完成,1表示已完成,-1表示未提交
+    submit_time = models.DateTimeField("问卷提交时间", null=True)
+    duration = models.IntegerField("问卷持续时间", null=True)  # 单位为秒
+    score = models.IntegerField("问卷分数", null=True)
+    state = models.IntegerField("问卷状态", null=True)  # 0表示未完成,1表示已完成,-1表示未提交
 
 
 class Question_answer(models.Model):
     # Question_answer表项，含问卷名和密码，均为字符串属性，并设置最大长度
     answer_sheet_id = models.ForeignKey(Answer_sheet, on_delete=models.CASCADE)
     question_id = models.ForeignKey(Question, on_delete=models.CASCADE)
-    answer = models.CharField("回答", max_length=200)
-    answer2 = models.TextField("回答2")
-    answer3 = models.IntegerField("回答3")
-    answer4 = models.ImageField("回答4")
-    answer5 = models.FileField("回答5")
-    score = models.IntegerField("回答得分")
+    answer = models.CharField("回答", max_length=200, null=True)
+    answer2 = models.TextField("回答2", null=True)
+    answer3 = models.IntegerField("回答3", null=True)
+    answer4 = models.ImageField("回答4", null=True)
+    answer5 = models.FileField("回答5", null=True)
+    score = models.IntegerField("回答得分", null=True)
