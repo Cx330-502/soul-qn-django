@@ -1,7 +1,11 @@
+import base64
+import os
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
+import json
 from Qn.models import *
+from django.conf import settings
 
 
 # Create your views here.
@@ -11,11 +15,12 @@ from Qn.models import *
 def get_examples(request):
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
-    token = request.POST.get("token")
+    body = json.loads(request.body)
+    token = body.get("token")
     user = auth_token(token)
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
-    qn_type = request.POST.get("type")
+    qn_type = body.get("type")
     if not qn_type:
         return JsonResponse({'errno': 1003, 'errmsg': '类型不能为空'})
     if not Questionnaire.objects.filter(public=True).filter(type=qn_type).exists():
@@ -33,11 +38,12 @@ def get_examples(request):
 def preview_qn(request):
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
-    token = request.POST.get("token")
+    body = json.loads(request.body)
+    token = body.get("token")
     user = auth_token(token)
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
-    example_id = request.POST.get("example_id")
+    example_id = body.get("example_id")
     if not example_id:
         return JsonResponse({'errno': 1, 'errmsg': '无问卷模板'})
     if not Questionnaire.objects.filter(public=True).filter(id=example_id).exists():
@@ -65,11 +71,12 @@ def preview_qn(request):
 def edit_qn(request):
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
-    token = request.POST.get("token")
+    body = json.loads(request.body)
+    token = body.get("token")
     user = auth_token(token)
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
-    qn_id = request.POST.get("qn_id")
+    qn_id = body.get("qn_id")
     if not qn_id:
         return JsonResponse({'errno': 1003, 'errmsg': '问卷id不能为空'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
@@ -84,50 +91,74 @@ def edit_qn(request):
     return JsonResponse({'errno': 0, 'errmsg': '获取成功', 'qn': return_qn})
 
 
+@csrf_exempt
+def save_qn_file(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
+    body = json.loads(request.body)
+    token = body.get("token")
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
+    file = body.get("file")
+    file_name = body.get("file_name")
+    decoded_file = base64.b64decode(file)
+    save_path = settings.STATIC_URL+"questionnaire/temp/"
+    file_path = os.path.join(save_path, file_name)
+    os.makedirs(save_path, exist_ok=True)
+    while os.path.exists(file_path):
+        file_path = file_path.split(".")[0] + "_1." + file_path.split(".")[1]
+    with open(file_path, 'wb') as f:
+        f.write(decoded_file)
+    url = file_path
+    return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'url': url})
+
+
 # 保存问卷，若是新建问卷则返回前端无id，若是编辑问卷则返回前端id
 @csrf_exempt
 def save_qn(request):
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
-    token = request.POST.get("token")
+    body = json.loads(request.body)
+    token = body.get("token")
     user = auth_token(token)
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
-    qn_id = request.POST.get("qn_id")
-    qn_type = request.POST.get("type")
+    qn_id = body.get("qn_id")
+    qn_type = body.get("type")
     if not qn_type:
         return JsonResponse({'errno': 1003, 'errmsg': '类型不能为空'})
-    qn_public = request.POST.get("public")
+    qn_public = body.get("public")
     if not qn_public:
         qn_public = True
-    qn_permission = request.POST.get("permission")
+    qn_permission = body.get("permission")
     if not qn_permission:
         qn_permission = 0
-    qn_collection_num = request.POST.get("collection_num")
+    qn_collection_num = body.get("collection_num")
     if not qn_collection_num:
         qn_collection_num = 0
-    qn_title = request.POST.get("title")
+    qn_title = body.get("title")
     if not qn_title:
         return JsonResponse({'errno': 1004, 'errmsg': '标题不能为空'})
-    qn_state = request.POST.get("state")
+    qn_state = body.get("state")
     if not qn_state:
         qn_state = 0
-    qn_release_time = request.POST.get("release_time")
+    qn_release_time = body.get("release_time")
     if not qn_release_time:
         qn_release_time = None
-    qn_finish_time = request.POST.get("finish_time")
+    qn_finish_time = body.get("finish_time")
     if not qn_finish_time:
         qn_finish_time = None
-    qn_start_time = request.POST.get("start_time")
+    qn_start_time = body.get("start_time")
     if not qn_start_time:
         qn_start_time = None
-    qn_duration = request.POST.get("duration")
+    qn_duration = body.get("duration")
     if not qn_duration:
         qn_duration = None
-    qn_password = request.POST.get("password")
+    qn_password = body.get("password")
     if not qn_password:
         qn_password = None
-    qn_description = request.POST.get("description")
+    qn_description = body.get("description")
     if not qn_description:
         qn_description = None
     if not qn_id:
@@ -155,7 +186,7 @@ def save_qn(request):
         qn.save()
         for question in Question.objects.filter(questionnaire_id=qn_id).all():
             question.delete()
-    questions = request.POST.get("questions")
+    questions = body.get("questions")
     for question in questions:
         question_type = question.get("type")
         if not question_type:
