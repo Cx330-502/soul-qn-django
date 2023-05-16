@@ -55,8 +55,8 @@ def preview_qn(request):
           'public': example.permission, 'name': example.name}
     questions = Question.objects.filter(questionnaire_id=example).all()
     for question in questions:
-        video_data = question.video.url if question.video else None
-        image_data = question.image.url if question.image else None
+        video_data = settings.MEDIA_ROOT+question.video.url if question.video else None
+        image_data = settings.MEDIA_ROOT+question.image.url if question.image else None
         qn['questions'].append({'type': question.type, 'description': question.description,
                                 'necessary': question.necessary, 'surface': question.surface,
                                 'width': question.width, 'order': question.order,
@@ -127,9 +127,12 @@ def save_qn(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     qn_id = body.get("qn_id")
+    organization_id = body.get("organization_id")
+    if organization_id and not Organization.objects.filter(id=organization_id).exists():
+        return JsonResponse({'errno': 1003, 'errmsg': '组织不存在'})
     qn_type = body.get("type")
     if not qn_type:
-        return JsonResponse({'errno': 1003, 'errmsg': '类型不能为空'})
+        return JsonResponse({'errno': 1004, 'errmsg': '类型不能为空'})
     qn_public = body.get("public")
     if not qn_public:
         qn_public = True
@@ -141,7 +144,7 @@ def save_qn(request):
         qn_collection_num = 0
     qn_title = body.get("title")
     if not qn_title:
-        return JsonResponse({'errno': 1004, 'errmsg': '标题不能为空'})
+        return JsonResponse({'errno': 1005, 'errmsg': '标题不能为空'})
     qn_state = body.get("state")
     if not qn_state:
         qn_state = 0
@@ -171,7 +174,7 @@ def save_qn(request):
                                           description=qn_description)
     else:
         if not Questionnaire.objects.filter(id=qn_id).exists():
-            return JsonResponse({'errno': 1005, 'errmsg': '问卷不存在'})
+            return JsonResponse({'errno': 1006, 'errmsg': '问卷不存在'})
         qn = Questionnaire.objects.get(id=qn_id)
         qn.type = qn_type
         qn.public = qn_public
@@ -192,7 +195,7 @@ def save_qn(request):
     for question in questions:
         question_type = question.get("type")
         if not question_type:
-            return JsonResponse({'errno': 1006, 'errmsg': '问题类型不能为空'})
+            return JsonResponse({'errno': 1007, 'errmsg': '问题类型不能为空'})
         question_description = question.get("description")
         if not question_description:
             question_description = None
@@ -207,7 +210,7 @@ def save_qn(request):
             question_width = 200
         question_order = question.get("order")
         if not question_order:
-            return JsonResponse({'errno': 1007, 'errmsg': '问题序号不能为空'})
+            return JsonResponse({'errno': 1008, 'errmsg': '问题序号不能为空'})
         question_change_line = question.get("change_line")
         if not question_change_line:
             question_change_line = False
@@ -257,4 +260,11 @@ def save_qn(request):
                                            content1=question_content1, content2=question_content2,
                                            video=question_video, image=question_image,
                                            answer1=question_answer1, answer2=question_answer2)
+    if not organization_id:
+        if not User_create_Questionnaire.objects.filter(questionnaire_id=qn.id).exists():
+            User_create_Questionnaire.objects.create(questionnaire=qn, user=user)
+    else:
+        if not Organization_create_Questionnaire.objects.filter(questionnaire_id=qn.id).exists():
+            Organization_create_Questionnaire.objects.create(questionnaire=qn,
+                                                             organization=Organization.objects.get(id=organization_id))
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'qn_id': qn.id})

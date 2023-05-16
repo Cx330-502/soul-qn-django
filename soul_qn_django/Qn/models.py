@@ -59,7 +59,8 @@ def decode_link(link):
 
 
 def questionnaire_file_upload_to(instance, filename):
-    path = os.path.join(settings.MEDIA_ROOT, 'questionnaire/', str(instance.id), '/file/')
+    path = 'questionnaire/' + str(instance.id) + '/file/QRcode/'
+    path = os.path.join(settings.MEDIA_ROOT, path)
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
     return path
@@ -114,11 +115,13 @@ class Questionnaire(models.Model):
         qr.add_data(self.link)
         qr.make(fit=True)
         img = qr.make_image(fill_color="black", back_color="white")
-        image_path = 'questionnaire/' + str(self.id) + '/QRcode/' + str(self.id) + '.png'
+        image_path = 'temp/questionnaire/' + str(self.id) + '/file/QRcode/' + str(self.id) + '.png'
+        image_path = os.path.join(settings.MEDIA_ROOT, image_path)
+        os.makedirs(os.path.dirname(image_path), exist_ok=True)
+        print(image_path)
         img.save(image_path)
         with open(image_path, 'rb') as f:
-            self.qr_code = File(f)
-            self.save()
+            self.qr_code.save(str(self.id) + '.png', File(f))
 
 
 class Organization_2_User(models.Model):
