@@ -65,12 +65,14 @@ def questionnaire_qrcode_file_upload_to(instance, filename):
     path = os.path.join(path, filename)
     return path
 
+
 def questionnaire_background_image_file_upload_to(instance, filename):
     path = 'questionnaire/' + str(instance.id) + '/file/Background_image/'
     path = os.path.join(settings.MEDIA_ROOT, path)
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
     return path
+
 
 def questionnaire_header_image_file_upload_to(instance, filename):
     path = 'questionnaire/' + str(instance.id) + '/file/Header_image/'
@@ -106,7 +108,6 @@ class Questionnaire(models.Model):
     font_color = models.CharField("字体颜色", max_length=100, null=True)
     header_font_color = models.CharField("表单字体颜色", max_length=100, null=True)
     question_num_visible = models.BooleanField("题号是否可见", default=True)
-    
 
     def info(self):
         background_image = settings.MEDIA_ROOT + self.background_image.url if self.background_image else None
@@ -199,7 +200,7 @@ class Question(models.Model):
     image = models.ImageField("问题图片", upload_to=question_file_upload_to, null=True, blank=True)
     answer1 = models.CharField("问题答案1", max_length=200, null=True)  # 选择题答案 以 "###" 分割
     answer2 = models.TextField("问题答案2", null=True)  # 文本题答案
-    num_limit = models.IntegerField("数字上限", null=True) 
+    num_limit = models.IntegerField("数字上限", null=True)
     multi_lines = models.IntegerField("多行文本", null=True)  # 0表示单行,1表示多行
     unit = models.CharField("单位", max_length=20, null=True)  # 数字题单位
 
@@ -207,7 +208,7 @@ class Question(models.Model):
         video = settings.MEDIA_ROOT + self.video.url if self.video else None
         image = settings.MEDIA_ROOT + self.image.url if self.image else None
         return {'id': self.id, 'type': self.type,
-                'description': self.description, 'questionnaire_id': self.questionnaire,
+                'description': self.description, 'questionnaire_id': self.questionnaire.id,
                 'necessary': self.necessary, 'surface': self.surface,
                 'width': self.width, 'order': self.order,
                 'change_line': self.change_line, 'score': self.score,

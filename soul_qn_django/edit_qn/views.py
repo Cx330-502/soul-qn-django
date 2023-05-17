@@ -203,17 +203,17 @@ def save_qn(request):
             qn_background_image = ContentFile(file_content, file_name)
         except:
             qn_background_image = None
-    qn_head_image = body.get("head_image")
-    if not qn_head_image:
-        qn_head_image = None
+    qn_header_image = body.get("header_image")
+    if not qn_header_image:
+        qn_header_image = None
     else:
         try:
-            with open(qn_head_image, 'rb') as f:
+            with open(qn_header_image, 'rb') as f:
                 file_content = f.read()
                 file_name = f.name
-            qn_head_image = ContentFile(file_content, file_name)
+            qn_header_image = ContentFile(file_content, file_name)
         except:
-            qn_head_image = None
+            qn_header_image = None
     qn_font_color = body.get("font_color")
     if not qn_font_color:
         qn_font_color = None
@@ -226,7 +226,7 @@ def save_qn(request):
                                           release_time=qn_release_time, finish_time=qn_finish_time,
                                           start_time=qn_start_time, duration=qn_duration, password=qn_password,
                                           description=qn_description,
-                                          background_image=qn_background_image, head_image=qn_head_image,
+                                          background_image=qn_background_image, header_image=qn_header_image,
                                           font_color=qn_font_color, header_font_color=qn_header_font_color)
     else:
         if not Questionnaire.objects.filter(id=qn_id).exists():
@@ -245,7 +245,7 @@ def save_qn(request):
         qn.password = qn_password
         qn.description = qn_description
         qn.background_image = qn_background_image
-        qn.head_image = qn_head_image
+        qn.header_image = qn_header_image
         qn.font_color = qn_font_color
         qn.header_font_color = qn_header_font_color
         qn.save()
