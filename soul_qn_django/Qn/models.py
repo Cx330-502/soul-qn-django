@@ -129,7 +129,9 @@ class Organization_2_User(models.Model):
     organization_id = models.ForeignKey(Organization, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     state = models.IntegerField("用户在组织中的状态")
-    # 0表示审核中,1表示已通过,-1表示拒绝,2表示可发布一次问卷,3表示可发布多次问卷,4表示可审核且可发布多次问卷
+    # -1表示审核已拒绝且不可再加入
+    # 0表示审核中,1表示已通过,2表示可发布一次问卷,3表示可发布多次问卷,4表示创始人, 3级可赋予1\2级 , 4级可赋予1\2\3\4级
+    # 4级可解散组织,3级可踢出1级
 
 
 class User_create_Questionnaire(models.Model):
@@ -156,9 +158,9 @@ def question_file_upload_to(instance, filename):
 
 class Question(models.Model):
     # Question表项
-    # 1表示单选,2表示多选,3表示文本,4表示文件
-    # 11表示图片单选,12表示图片多选,13表示图片文本,14表示图片文件
-    # 21表示视频单选,22表示视频多选,23表示视频文本,24表示视频文件
+    # 1表示单选,2表示多选,3表示文本,4表示文件,5表示填空
+    # 11表示图片单选,12表示图片多选,13表示图片文本,14表示图片文件,15表示图片填空
+    # 21表示视频单选,22表示视频多选,23表示视频文本,24表示视频文件,25表示视频填空
     type = models.IntegerField("问题类型")
     description = models.CharField("问题描述", max_length=200, null=True)
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
@@ -176,8 +178,8 @@ class Question(models.Model):
     answer2 = models.TextField("问题答案2", null=True)  # 文本题答案
 
     def info(self):
-        video = self.video.url if self.video else None
-        image = self.image.url if self.image else None
+        video = settings.MEDIA_ROOT + self.video.url if self.video else None
+        image = settings.MEDIA_ROOT + self.image.url if self.image else None
         return {'id': self.id, 'type': self.type,
                 'description': self.description, 'questionnaire_id': self.questionnaire_id,
                 'necessary': self.necessary, 'surface': self.surface,
@@ -197,6 +199,16 @@ class Answer_sheet(models.Model):
     score = models.IntegerField("问卷分数", null=True)
     state = models.IntegerField("问卷状态", null=True)  # 0表示未完成,1表示已完成,-1表示未提交
 
+    def info(self):
+        return {'answer_sheet_id': self.id,
+                'questionnaire_id': self.questionnaire_id.id,
+                'answerer_id': self.answerer_id.id,
+                'submit_time': self.submit_time,
+                'duration': self.duration,
+                'score': self.score,
+                'state': self.state,
+                'answers': []}
+
 
 class Question_answer(models.Model):
     # Question_answer表项，含问卷名和密码，均为字符串属性，并设置最大长度
@@ -208,3 +220,13 @@ class Question_answer(models.Model):
     answer4 = models.ImageField("回答4", null=True)
     answer5 = models.FileField("回答5", null=True)
     score = models.IntegerField("回答得分", null=True)
+
+    def info(self):
+        answer5 = settings.MEDIA_ROOT + self.answer5.url if self.answer5 else None
+        return {'answer_sheet_id': self.answer_sheet_id.id,
+                'question_id': self.question_id.id,
+                'question_order': self.question_id.order,
+                'answer': self.answer,
+                'answer2': self.answer2,
+                'answer5': answer5,
+                'score': self.score}

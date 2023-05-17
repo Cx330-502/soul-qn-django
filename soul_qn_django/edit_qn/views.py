@@ -26,6 +26,14 @@ def get_examples(request):
         return JsonResponse({'errno': 1003, 'errmsg': '类型不能为空'})
     if not Questionnaire.objects.filter(public=True).filter(type=qn_type).exists():
         return JsonResponse({'errno': 1, 'errmsg': '无同类型问卷'})
+    organization_id = body.get("organization_id")
+    if organization_id:
+        if not Organization.objects.filter(id=organization_id).exists():
+            return JsonResponse({'errno': 1004, 'errmsg': '组织不存在'})
+        if not Organization_2_User.objects.filter(organization_id=organization_id).filter(user=user).exists():
+            return JsonResponse({'errno': 1005, 'errmsg': '用户不在该组织'})
+        if Organization_2_User.objects.get(organization_id=organization_id, user=user).state < 2:
+            return JsonResponse({'errno': 1006, 'errmsg': '无权限'})
     examples = Questionnaire.objects.filter(type=qn_type)[:10]
     examples_list = list(examples)
     for i in range(len(examples_list)):
@@ -55,8 +63,8 @@ def preview_qn(request):
           'public': example.permission, 'name': example.name}
     questions = Question.objects.filter(questionnaire_id=example).all()
     for question in questions:
-        video_data = settings.MEDIA_ROOT+question.video.url if question.video else None
-        image_data = settings.MEDIA_ROOT+question.image.url if question.image else None
+        video_data = settings.MEDIA_ROOT + question.video.url if question.video else None
+        image_data = settings.MEDIA_ROOT + question.image.url if question.image else None
         qn['questions'].append({'type': question.type, 'description': question.description,
                                 'necessary': question.necessary, 'surface': question.surface,
                                 'width': question.width, 'order': question.order,
@@ -102,9 +110,13 @@ def save_qn_file(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     file = body.get("file")
+    if not file:
+        return JsonResponse({'errno': 1003, 'errmsg': '文件不能为空'})
     file_name = body.get("file_name")
+    if not file_name:
+        return JsonResponse({'errno': 1004, 'errmsg': '文件名不能为空'})
     decoded_file = base64.b64decode(file)
-    save_path = settings.STATIC_URL+"questionnaire/temp/"
+    save_path = settings.MEDIA_ROOT + "questionnaire/temp/"
     file_path = os.path.join(save_path, file_name)
     os.makedirs(save_path, exist_ok=True)
     while os.path.exists(file_path):
@@ -232,7 +244,6 @@ def save_qn(request):
                     file_content = f.read()
                     file_name = f.name.split('/')[-1]
                 question_video = ContentFile(file_content, file_name)
-                print(file_name)
             except Exception as e:
                 print(e)
                 question_video = None
@@ -267,4 +278,8 @@ def save_qn(request):
         if not Organization_create_Questionnaire.objects.filter(questionnaire_id=qn.id).exists():
             Organization_create_Questionnaire.objects.create(questionnaire=qn,
                                                              organization=Organization.objects.get(id=organization_id))
+            temp = Organization_2_User.objects.filter(organization_id=organization_id, user=user).first()
+            if temp.state == 2:
+                temp.state = 1
+                temp.save()
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'qn_id': qn.id})
