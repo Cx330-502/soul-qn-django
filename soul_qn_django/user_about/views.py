@@ -63,7 +63,7 @@ def login(request):
     else:
         return JsonResponse({'errno': 1001, 'errmsg': '用户名或邮箱不存在'})
     if user.password == password:
-        token = user.create_token(3600)
+        token = user.create_token(3600*24)
         return JsonResponse({'errno': 0, 'errmsg': '登录成功', 'token': token})
     return JsonResponse({'errno': 1002, 'errmsg': '密码错误'})
 

@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'corsheaders',  # 跨域请求
     'user_about.apps.UserAboutConfig',  # 处理用户信息，包括登陆注册、群组管理等
     'analyse_qn.apps.AnalyseQnConfig',  # 处理问卷分析
     'answer_qn.apps.AnswerQnConfig',  # 处理问卷答题
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # 跨域请求
     "django.middleware.common.CommonMiddleware",
     # "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
