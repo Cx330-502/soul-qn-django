@@ -1,8 +1,10 @@
 import base64
 import json
 import os
+from datetime import datetime
 
 from django.core.files.base import ContentFile
+from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import render
 from Qn.models import *
@@ -64,7 +66,7 @@ def answer_qn(request):
                 return JsonResponse({'errno': 1006, 'errmsg': '已回答过该问卷'})
             if temp.state == 0:
                 answer_sheet = temp.info()
-                for answer in Question_answer.objects.filter(answer_sheet=temp, answerer_id=user).all():
+                for answer in Question_answer.objects.filter(answer_sheet=temp, answerer=user).all():
                     answer_sheet['answers'].append(answer.info())
     if qn.permission >= 3:
         if not Organization_create_Questionnaire.objects.filter(questionnaire=qn).exists():
@@ -73,7 +75,7 @@ def answer_qn(request):
         if not Organization_2_User.objects.filter(organization=organization, user=user).exists():
             return JsonResponse({'errno': 1007, 'errmsg': '权限错误'})
     return_qn = qn.info()
-    questions = Question.objects.filter(questionnaire_id=qn).all()
+    questions = Question.objects.filter(questionnaire=qn).all()
     for question in questions:
         return_qn['questions'].append(question.info())
     return JsonResponse({'errno': 0, 'errmsg': '权限合法', 'qn': return_qn, 'answer_sheet': answer_sheet})
@@ -155,13 +157,14 @@ def submit_answers(request):
     token = body.get('token')
     user = auth_token(token)
     if not user:
-        return JsonResponse({'errno': 1002, 'errmsg': 'token错误或已过期'})
+        user = None
     qn_id = body.get('qn_id')
     if not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1003, 'errmsg': '问卷不存在'})
     qn = Questionnaire.objects.get(id=qn_id)
-    if Answer_sheet.objects.filter(user=user, questionnaire=qn).exists():
-        Answer_sheet.objects.filter(user=user, questionnaire=qn).delete()
+    if user is not None:
+        if Answer_sheet.objects.filter(user=user, questionnaire=qn).exists():
+            Answer_sheet.objects.filter(user=user, questionnaire=qn).delete()
     duration = body.get('duration')
     answers = body.get('answers')
     for answer in answers:
@@ -174,7 +177,8 @@ def submit_answers(request):
         answer1 = answer.get('answer')
         if question.necessary and not answer1:
             return JsonResponse({'errno': 1006, 'errmsg': '必填问题未填写'})
-    answer_sheet = Answer_sheet.objects.create(user=user, questionnaire=qn, duration=duration, state=1)
+    answer_sheet = Answer_sheet.objects.create(user=user, questionnaire=qn, duration=duration, state=1,
+                                               submit_time=datetime.now())
     for answer in answers:
         question_id = answer.get('question_id')
         if not question_id:
@@ -225,4 +229,11 @@ def submit_answers(request):
                     print(e)
                     answer1 = None
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer5=answer1)
+    if qn.type == 1:
+        answer_sheet.score = 0
+        for answer in Question_answer.objects.filter(answer_sheet=answer_sheet):
+            if answer.score is not None:
+                answer_sheet.score += answer.score
+    qn.collection_num += 1
+    qn.save()
     return JsonResponse({'errno': 0, 'errmsg': '保存成功'})

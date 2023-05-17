@@ -126,8 +126,8 @@ class Questionnaire(models.Model):
 
 class Organization_2_User(models.Model):
     # Organization_2_User表项，含组织id和用户id，
-    organization_id = models.ForeignKey(Organization, on_delete=models.CASCADE)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     state = models.IntegerField("用户在组织中的状态")
     # -1表示审核已拒绝且不可再加入
     # 0表示审核中,1表示已通过,2表示可发布一次问卷,3表示可发布多次问卷,4表示创始人, 3级可赋予1\2级 , 4级可赋予1\2\3\4级
@@ -136,20 +136,20 @@ class Organization_2_User(models.Model):
 
 class User_create_Questionnaire(models.Model):
     # User_create_Questionnaire表项，含用户id和问卷id
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    questionnaire_id = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
 
 
 class Organization_create_Questionnaire(models.Model):
     # Organization_create_Questionnaire表项，含组织id和问卷id，均为字符串属性，并设置最大长度
-    organization_id = models.ForeignKey(Organization, on_delete=models.CASCADE)
-    questionnaire_id = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
     necessary = models.BooleanField("问卷是否必填")  # True表示必填,False表示非必填
 
 
 def question_file_upload_to(instance, filename):
     filename = os.path.basename(filename)
-    path = os.path.join(settings.MEDIA_ROOT + 'questionnaire/' + str(instance.questionnaire_id) + '/question/',
+    path = os.path.join(settings.MEDIA_ROOT + 'questionnaire/' + str(instance.questionnaire.id) + '/question/',
                         str(instance.order) + '/')
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
@@ -181,7 +181,7 @@ class Question(models.Model):
         video = settings.MEDIA_ROOT + self.video.url if self.video else None
         image = settings.MEDIA_ROOT + self.image.url if self.image else None
         return {'id': self.id, 'type': self.type,
-                'description': self.description, 'questionnaire_id': self.questionnaire_id,
+                'description': self.description, 'questionnaire_id': self.questionnaire,
                 'necessary': self.necessary, 'surface': self.surface,
                 'width': self.width, 'order': self.order,
                 'change_line': self.change_line, 'score': self.score,
@@ -192,8 +192,8 @@ class Question(models.Model):
 
 class Answer_sheet(models.Model):
     # Answer_sheet表项，含问卷名和密码，均为字符串属性，并设置最大长度
-    questionnaire_id = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
-    answerer_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
+    answerer = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     submit_time = models.DateTimeField("问卷提交时间", null=True)
     duration = models.IntegerField("问卷持续时间", null=True)  # 单位为秒
     score = models.IntegerField("问卷分数", null=True)
@@ -201,8 +201,8 @@ class Answer_sheet(models.Model):
 
     def info(self):
         return {'answer_sheet_id': self.id,
-                'questionnaire_id': self.questionnaire_id.id,
-                'answerer_id': self.answerer_id.id,
+                'questionnaire_id': self.questionnaire.id,
+                'answerer_id': self.answerer.id,
                 'submit_time': self.submit_time,
                 'duration': self.duration,
                 'score': self.score,
@@ -212,8 +212,8 @@ class Answer_sheet(models.Model):
 
 class Question_answer(models.Model):
     # Question_answer表项，含问卷名和密码，均为字符串属性，并设置最大长度
-    answer_sheet_id = models.ForeignKey(Answer_sheet, on_delete=models.CASCADE)
-    question_id = models.ForeignKey(Question, on_delete=models.CASCADE)
+    answer_sheet = models.ForeignKey(Answer_sheet, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer = models.CharField("回答", max_length=200, null=True)
     answer2 = models.TextField("回答2", null=True)
     answer3 = models.IntegerField("回答3", null=True)
@@ -223,9 +223,9 @@ class Question_answer(models.Model):
 
     def info(self):
         answer5 = settings.MEDIA_ROOT + self.answer5.url if self.answer5 else None
-        return {'answer_sheet_id': self.answer_sheet_id.id,
-                'question_id': self.question_id.id,
-                'question_order': self.question_id.order,
+        return {'answer_sheet_id': self.answer_sheet.id,
+                'question_id': self.question.id,
+                'question_order': self.question.order,
                 'answer': self.answer,
                 'answer2': self.answer2,
                 'answer5': answer5,
