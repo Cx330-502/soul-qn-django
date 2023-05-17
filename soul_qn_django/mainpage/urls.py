@@ -1,6 +1,8 @@
 from django.urls import path
-from .views import *
+from . import views
 
 urlpatterns = [
-    path('hello/', hello),
+    path('hello/', views.hello),
+    path('listqn/', views.listqn_views),
+
 ]
