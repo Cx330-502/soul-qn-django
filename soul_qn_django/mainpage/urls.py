@@ -1,8 +1,10 @@
 from django.urls import path
-from . import views
+from .views import *
 
 urlpatterns = [
-    path('hello/', views.hello),
-    path('listqn/', views.listqn_views),
+    path('hello/', hello),
+    path('listqn/', listqn_views),
 
+    path('generate_link', generate_link),
+    path('generate_qrcode', generate_qrcode),
 ]
