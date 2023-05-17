@@ -164,7 +164,7 @@ def drawLineChartwithMarker():
 
 
 if __name__ == '__main__':
-    pdfmetrics.registerFont(TTFont('微软雅黑', './fonts/font1716.ttf'))
+    pdfmetrics.registerFont(TTFont('微软雅黑', 'fonts/思源宋体.ttf'))
     doc = SimpleDocTemplate("drawpic.pdf", pagesize=A4, leftMargin=10, rightMargin=0, topMargin=50, bottomMargin=30)
     contents = []
     contents.append(

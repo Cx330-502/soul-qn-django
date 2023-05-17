@@ -58,8 +58,22 @@ def decode_link(link):
     return qn_id
 
 
-def questionnaire_file_upload_to(instance, filename):
+def questionnaire_qrcode_file_upload_to(instance, filename):
     path = 'questionnaire/' + str(instance.id) + '/file/QRcode/'
+    path = os.path.join(settings.MEDIA_ROOT, path)
+    os.makedirs(path, exist_ok=True)
+    path = os.path.join(path, filename)
+    return path
+
+def questionnaire_background_image_file_upload_to(instance, filename):
+    path = 'questionnaire/' + str(instance.id) + '/file/Background_image/'
+    path = os.path.join(settings.MEDIA_ROOT, path)
+    os.makedirs(path, exist_ok=True)
+    path = os.path.join(path, filename)
+    return path
+
+def questionnaire_header_image_file_upload_to(instance, filename):
+    path = 'questionnaire/' + str(instance.id) + '/file/Header_image/'
     path = os.path.join(settings.MEDIA_ROOT, path)
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
@@ -86,9 +100,19 @@ class Questionnaire(models.Model):
     title = models.CharField("问卷标题", max_length=100)
     description = models.CharField("问卷描述", max_length=100, null=True)
     link = models.CharField("问卷链接", max_length=100, null=True)
-    qr_code = models.ImageField("二维码", upload_to=questionnaire_file_upload_to, null=True)
+    qr_code = models.ImageField("二维码", upload_to=questionnaire_qrcode_file_upload_to, null=True)
+    background_image = models.ImageField("背景图片", upload_to=questionnaire_background_image_file_upload_to, null=True)
+    header_image = models.ImageField("表单图片", upload_to=questionnaire_header_image_file_upload_to, null=True)
+    font_color = models.CharField("字体颜色", max_length=100, null=True)
+    header_font_color = models.CharField("表单字体颜色", max_length=100, null=True)
+    question_num_visible = models.BooleanField("题号是否可见", default=True)
+    
 
     def info(self):
+        background_image = settings.MEDIA_ROOT + self.background_image.url if self.background_image else None
+        header_image = settings.MEDIA_ROOT + self.header_image.url if self.header_image else None
+        font_color = self.font_color
+        header_font_color = self.header_font_color
         return {'id': self.id, 'name': self.name,
                 'type': self.type, 'public': self.public,
                 'permission': self.permission, 'collection_num': self.collection_num,
@@ -96,6 +120,8 @@ class Questionnaire(models.Model):
                 'finish_time': self.finish_time, 'start_time': self.start_time,
                 'duration': self.duration, 'password': self.password,
                 'title': self.title, 'description': self.description,
+                'background_image': background_image, 'header_image': header_image,
+                'font_color': font_color, 'header_font_color': header_font_color,
                 'questions': []}
 
     # 生成问卷链接
@@ -118,7 +144,6 @@ class Questionnaire(models.Model):
         image_path = 'temp/questionnaire/' + str(self.id) + '/file/QRcode/' + str(self.id) + '.png'
         image_path = os.path.join(settings.MEDIA_ROOT, image_path)
         os.makedirs(os.path.dirname(image_path), exist_ok=True)
-        print(image_path)
         img.save(image_path)
         with open(image_path, 'rb') as f:
             self.qr_code.save(str(self.id) + '.png', File(f))
@@ -158,9 +183,7 @@ def question_file_upload_to(instance, filename):
 
 class Question(models.Model):
     # Question表项
-    # 1表示单选,2表示多选,3表示文本,4表示文件,5表示填空
-    # 11表示图片单选,12表示图片多选,13表示图片文本,14表示图片文件,15表示图片填空
-    # 21表示视频单选,22表示视频多选,23表示视频文本,24表示视频文件,25表示视频填空
+    # 1表示单选,2表示多选,3表示文本,4表示文件,5表示填空,6表示下拉,7表示数字,8表示日期,9表示评分
     type = models.IntegerField("问题类型")
     description = models.CharField("问题描述", max_length=200, null=True)
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
@@ -170,12 +193,15 @@ class Question(models.Model):
     order = models.IntegerField("问题顺序")
     change_line = models.IntegerField("问题是否换行")  # 0表示不换行,1表示换行
     score = models.IntegerField("问题分数", null=True)
-    content1 = models.CharField("问题内容1", max_length=400, null=True)  # 选择题选项 以 "===" 分割
+    content1 = models.CharField("问题内容1", max_length=400, null=True)  # 选择题选项 以 "###" 分割
     content2 = models.TextField("问题内容2", null=True)  # 文本题阅读材料
     video = models.FileField("问题视频", upload_to=question_file_upload_to, null=True, blank=True)
     image = models.ImageField("问题图片", upload_to=question_file_upload_to, null=True, blank=True)
-    answer1 = models.CharField("问题答案1", max_length=200, null=True)  # 选择题答案 以 "===" 分割
+    answer1 = models.CharField("问题答案1", max_length=200, null=True)  # 选择题答案 以 "###" 分割
     answer2 = models.TextField("问题答案2", null=True)  # 文本题答案
+    num_limit = models.IntegerField("数字上限", null=True) 
+    multi_lines = models.IntegerField("多行文本", null=True)  # 0表示单行,1表示多行
+    unit = models.CharField("单位", max_length=20, null=True)  # 数字题单位
 
     def info(self):
         video = settings.MEDIA_ROOT + self.video.url if self.video else None
@@ -187,7 +213,9 @@ class Question(models.Model):
                 'change_line': self.change_line, 'score': self.score,
                 'content1': self.content1, 'content2': self.content2,
                 'video': video, 'image': image,
-                'answer1': self.answer1, 'answer2': self.answer2}
+                'answer1': self.answer1, 'answer2': self.answer2,
+                'num_limit': self.num_limit, 'multi_lines': self.multi_lines,
+                'unit': self.unit}
 
 
 class Answer_sheet(models.Model):

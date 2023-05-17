@@ -132,7 +132,7 @@ def export_data(request):
             if not answer:
                 row.append('')
             else:
-                if answer.question.type == 1 or answer.question.type == 2 or answer.question.type == 5:
+                if answer.question.type != 4 and answer.question.type != 5:
                     row.append(answer.answer1)
                 if answer.question.type == 3:
                     row.append(answer.answer2)
@@ -152,45 +152,57 @@ def export_data(request):
 
 # 生成报告
 def generate_report(request):
-    if request.method != "POST":
-        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
-    body = json.loads(request.body)
-    token = body.get('token')
-    user = auth_token(token)
-    if not user:
-        return JsonResponse({'errno': 1002, 'errmsg': 'token错误或已过期'})
-    qn_id = body.get('qn_id')
-    if not qn_id or not Questionnaire.objects.filter(id=qn_id).exists():
-        return JsonResponse({'errno': 1003, 'errmsg': '问卷编号错误'})
-    qn = Questionnaire.objects.get(id=qn_id)
-
-    pdfmetrics.registerFont(TTFont('MiSans', 'file/fonts/MiSans-Regular.ttf'))
-    pdfmetrics.registerFont(TTFont('思源宋体', 'file/fonts/思源宋体M.ttf'))
-    pdfmetrics.registerFont(TTFont('方正黑体', 'file/fonts/方正黑体简体.TTF'))
-    doc = SimpleDocTemplate('file/report.pdf', pagesize=A4,
-                            rightMargin=72, leftMargin=72,
-                            topMargin=72, bottomMargin=18)
-    contents = [Paragraph(qn.title + "-问卷报告",
-                          style=ParagraphStyle(name='Normal', fontName='思源宋体', fontSize=20, alignment=TA_CENTER)),
-                Spacer(doc.width, 30)]
-
-    # 绘制饼图
-    def DrawPie(question):
-        pic = Drawing(400, 400)
-        pic.add(String(0, 160, question.title + "回答情况", fontName='思源宋体', fontSize=16))
-        pie = Pie()
-        pie.x = 200
-        pie.y = 0
-        answer_list = []
-        for answer in Question_answer.objects.filter(question=question).all():
-            flag = False
-            for answer0 in answer_list:
-                if answer0.answer == answer.answer1:
-                    answer0.count += 1
-                    flag = True
-                    break
-            if not flag:
-                answer_list.append({"answer": answer.answer1, "count": 0})
-        total = 0
-        for answer in answer_list:
-            total += answer.count
+    # if request.method != "POST":
+    #     return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
+    # body = json.loads(request.body)
+    # token = body.get('token')
+    # user = auth_token(token)
+    # if not user:
+    #     return JsonResponse({'errno': 1002, 'errmsg': 'token错误或已过期'})
+    # qn_id = body.get('qn_id')
+    # if not qn_id or not Questionnaire.objects.filter(id=qn_id).exists():
+    #     return JsonResponse({'errno': 1003, 'errmsg': '问卷编号错误'})
+    # qn = Questionnaire.objects.get(id=qn_id)
+    #
+    # pdfmetrics.registerFont(TTFont('MiSans', 'file/fonts/MiSans-Regular.ttf'))
+    # pdfmetrics.registerFont(TTFont('思源宋体', 'file/fonts/思源宋体.ttf'))
+    # pdfmetrics.registerFont(TTFont('方正黑体', 'file/fonts/方正黑体简体.TTF'))
+    # doc = SimpleDocTemplate('file/report.pdf', pagesize=A4,
+    #                         rightMargin=72, leftMargin=72,
+    #                         topMargin=72, bottomMargin=18)
+    # contents = [Paragraph(qn.title + "-问卷报告",
+    #                       style=ParagraphStyle(name='Normal', fontName='思源宋体', fontSize=20, alignment=TA_CENTER)),
+    #             Spacer(doc.width, 30)]
+    #
+    # # 绘制饼图
+    # def DrawPie(question):
+    #     pic = Drawing(400, 400)
+    #     pic.add(String(0, 160, question.title + "回答情况", fontName='思源宋体', fontSize=16))
+    #     pie = Pie()
+    #     pie.x = 200
+    #     pie.y = 0
+    #     answer_list = []
+    #     for answer in Question_answer.objects.filter(question=question).all():
+    #         flag = False
+    #         for answer0 in answer_list:
+    #             if answer0.answer == answer.answer1:
+    #                 answer0.count += 1
+    #                 flag = True
+    #                 break
+    #         if not flag:
+    #             answer_list.append({"answer": answer.answer1, "count": 0})
+    #     total = 0
+    #     for answer in answer_list:
+    #         total += answer["count"]
+    #     percent = 100
+    #     k = 0
+    #     answer_list.sort(key=lambda x: x["count"], reverse=True)
+    #     for answer in answer_list:
+    #         temp = answer["count"] / total * 100
+    #         percent -= temp
+    #         if percent <= 0:
+    #             temp = temp + percent
+    #             percent = 0
+    #         pie.data.append(temp)
+    #         pie.labels.append(answer["answer"] + " - " + temp + "%" )
+    pass

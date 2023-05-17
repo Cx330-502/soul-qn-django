@@ -130,7 +130,7 @@ def save_answers(request):
         question = Question.objects.get(id=question_id)
         answer1 = answer.get('answer')
         type0 = question.type % 10
-        if type0 == 1 or type0 == 2 or type0 == 5:
+        if type0 != 3 and type0 != 4:
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer=answer1)
         elif type0 == 3:
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer2=answer1)
@@ -191,7 +191,7 @@ def submit_answers(request):
         if type0 == 1 or type0 == 2 or type0 == 5:
             score = None
             if qn.type == 1:
-                if type0 == 1:
+                if type0 == 1 or type0 == 5 or type0 == 6 or type0 == 7 or type0 == 8 or type0 == 9:
                     if question.answer1 != answer1:
                         score = 0
                     else:
@@ -208,11 +208,6 @@ def submit_answers(request):
                             score = question.score // 2
                         else:
                             score = question.score
-                elif type0 == 5:
-                    if question.answer5 != answer1:
-                        score = 0
-                    else:
-                        score = question.score
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer=answer1, score=score)
         elif type0 == 3:
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer2=answer1)
@@ -236,4 +231,4 @@ def submit_answers(request):
                 answer_sheet.score += answer.score
     qn.collection_num += 1
     qn.save()
-    return JsonResponse({'errno': 0, 'errmsg': '保存成功'})
+    return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'score': answer_sheet.score})

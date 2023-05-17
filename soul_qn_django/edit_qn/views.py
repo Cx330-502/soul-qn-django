@@ -10,7 +10,6 @@ from django.conf import settings
 
 
 # Create your views here.
-
 # 获得十个样例问卷
 @csrf_exempt
 def get_examples(request):
@@ -37,8 +36,17 @@ def get_examples(request):
     examples = Questionnaire.objects.filter(type=qn_type)[:10]
     examples_list = list(examples)
     for i in range(len(examples_list)):
+        background_image = settings.MEDIA_ROOT + examples_list[i].background_image.url if examples_list[
+            i].background_image else None
+        header_image = settings.MEDIA_ROOT + examples_list[i].header_image.url if examples_list[
+            i].header_image else None
         examples_list[i] = {"title": examples_list[i].title, "id": examples_list[i].id,
-                            "description": examples_list[i].description}
+                            "description": examples_list[i].description,
+                            "background_image": background_image, "header_image": header_image,
+                            "font_color": examples_list[i].font_color,
+                            "header_font_color": examples_list[i].header_font_color,
+                            "name": examples_list[i].name
+                            }
     return JsonResponse({'errno': 0, 'errmsg': '获取成功', 'examples': examples_list})
 
 
@@ -58,9 +66,13 @@ def preview_qn(request):
     if not Questionnaire.objects.filter(public=True).filter(id=example_id).exists():
         return JsonResponse({'errno': 1003, 'errmsg': '问卷模板不存在'})
     example = Questionnaire.objects.get(id=example_id)
+    background_image = settings.MEDIA_ROOT + example.background_image.url if example.background_image else None
+    header_image = settings.MEDIA_ROOT + example.header_image.url if example.header_image else None
     qn = {'title': example.title, 'description': example.description, 'type': example.type,
           'permission': example.permission, 'questions': [],
-          'public': example.permission, 'name': example.name}
+          'public': example.permission, 'name': example.name,
+          'background_image': background_image, 'header_image': header_image,
+          'font_color': example.font_color, 'header_font_color': example.header_font_color, }
     questions = Question.objects.filter(questionnaire_id=example).all()
     for question in questions:
         video_data = settings.MEDIA_ROOT + question.video.url if question.video else None
@@ -71,7 +83,9 @@ def preview_qn(request):
                                 'change_line': question.change_line, 'score': question.score,
                                 'content1': question.content1, 'content2': question.content2,
                                 'video': video_data, 'image': image_data,
-                                'answer1': question.answer1, 'answer2': question.answer2})
+                                'answer1': question.answer1, 'answer2': question.answer2,
+                                'num_limit': question.num_limit, 'multi-lines': question.multi_lines,
+                                'unit': question.unit})
     return JsonResponse({'errno': 0, 'errmsg': '获取成功', 'qn': qn})
 
 
@@ -178,12 +192,42 @@ def save_qn(request):
     qn_description = body.get("description")
     if not qn_description:
         qn_description = None
+    qn_background_image = body.get("background_image")
+    if not qn_background_image:
+        qn_background_image = None
+    else:
+        try:
+            with open(qn_background_image, 'rb') as f:
+                file_content = f.read()
+                file_name = f.name
+            qn_background_image = ContentFile(file_content, file_name)
+        except:
+            qn_background_image = None
+    qn_head_image = body.get("head_image")
+    if not qn_head_image:
+        qn_head_image = None
+    else:
+        try:
+            with open(qn_head_image, 'rb') as f:
+                file_content = f.read()
+                file_name = f.name
+            qn_head_image = ContentFile(file_content, file_name)
+        except:
+            qn_head_image = None
+    qn_font_color = body.get("font_color")
+    if not qn_font_color:
+        qn_font_color = None
+    qn_header_font_color = body.get("header_font_color")
+    if not qn_header_font_color:
+        qn_header_font_color = None
     if not qn_id:
         qn = Questionnaire.objects.create(type=qn_type, public=qn_public, permission=qn_permission,
                                           collection_num=qn_collection_num, title=qn_title, state=qn_state,
                                           release_time=qn_release_time, finish_time=qn_finish_time,
                                           start_time=qn_start_time, duration=qn_duration, password=qn_password,
-                                          description=qn_description)
+                                          description=qn_description,
+                                          background_image=qn_background_image, head_image=qn_head_image,
+                                          font_color=qn_font_color, header_font_color=qn_header_font_color)
     else:
         if not Questionnaire.objects.filter(id=qn_id).exists():
             return JsonResponse({'errno': 1006, 'errmsg': '问卷不存在'})
@@ -200,6 +244,10 @@ def save_qn(request):
         qn.duration = qn_duration
         qn.password = qn_password
         qn.description = qn_description
+        qn.background_image = qn_background_image
+        qn.head_image = qn_head_image
+        qn.font_color = qn_font_color
+        qn.header_font_color = qn_header_font_color
         qn.save()
         for question in Question.objects.filter(questionnaire_id=qn_id).all():
             question.delete()
@@ -264,13 +312,23 @@ def save_qn(request):
         question_answer2 = question.get("answer2")
         if not question_answer2:
             question_answer2 = None
+        num_limit = question.get("num_limit")
+        if not num_limit:
+            num_limit = None
+        multi_lines = question.get("multi-lines")
+        if not multi_lines:
+            multi_lines = None
+        unit = question.get("unit")
+        if not unit:
+            unit = None
         question = Question.objects.create(questionnaire=qn, type=question_type,
                                            description=question_description, necessary=question_necessary,
                                            surface=question_surface, width=question_width, order=question_order,
                                            change_line=question_change_line, score=question_score,
                                            content1=question_content1, content2=question_content2,
                                            video=question_video, image=question_image,
-                                           answer1=question_answer1, answer2=question_answer2)
+                                           answer1=question_answer1, answer2=question_answer2,
+                                           num_limit=num_limit, multi_lines=multi_lines, unit=unit)
     if not organization_id:
         if not User_create_Questionnaire.objects.filter(questionnaire_id=qn.id).exists():
             User_create_Questionnaire.objects.create(questionnaire=qn, user=user)
