@@ -1,5 +1,6 @@
 import base64
 import os
+import shutil
 from datetime import datetime
 
 import requests
@@ -31,7 +32,8 @@ def get_examples(request):
     if organization_id:
         if not Organization.objects.filter(id=organization_id).exists():
             return JsonResponse({'errno': 1004, 'errmsg': '组织不存在'})
-        if not Organization_2_User.objects.filter(organization_id=organization_id).filter(user=user).exists():
+        if not Organization_2_User.objects.filter(
+                organization_id=organization_id).filter(user=user).exists():
             return JsonResponse({'errno': 1005, 'errmsg': '用户不在该组织'})
         if Organization_2_User.objects.get(organization_id=organization_id, user=user).state < 2:
             return JsonResponse({'errno': 1006, 'errmsg': '无权限'})
@@ -132,7 +134,7 @@ def save_qn_file(request):
     if not file_name:
         return JsonResponse({'errno': 1004, 'errmsg': '文件名不能为空'})
     decoded_file = base64.b64decode(file)
-    save_path = settings.MEDIA_ROOT + "questionnaire/temp/"
+    save_path = settings.MEDIA_ROOT + "questionnaire/temp/edit_cache/"
     file_path = os.path.join(save_path, file_name)
     os.makedirs(save_path, exist_ok=True)
     while os.path.exists(file_path):
@@ -224,12 +226,15 @@ def save_qn(request):
         qn_header_font_color = None
     if not qn_id:
         qn = Questionnaire.objects.create(type=qn_type, public=qn_public, permission=qn_permission,
-                                          collection_num=qn_collection_num, title=qn_title, state=qn_state,
-                                          release_time=qn_release_time, finish_time=qn_finish_time,
-                                          start_time=qn_start_time, duration=qn_duration, password=qn_password,
-                                          description=qn_description,
-                                          background_image=qn_background_image, header_image=qn_header_image,
-                                          font_color=qn_font_color, header_font_color=qn_header_font_color)
+                                          collection_num=qn_collection_num, title=qn_title,
+                                          state=qn_state, release_time=qn_release_time,
+                                          finish_time=qn_finish_time,
+                                          start_time=qn_start_time, duration=qn_duration,
+                                          password=qn_password, description=qn_description,
+                                          background_image=qn_background_image,
+                                          header_image=qn_header_image,
+                                          font_color=qn_font_color,
+                                          header_font_color=qn_header_font_color)
     else:
         if not Questionnaire.objects.filter(id=qn_id).exists():
             return JsonResponse({'errno': 1006, 'errmsg': '问卷不存在'})
@@ -327,7 +332,8 @@ def save_qn(request):
             unit = None
         question = Question.objects.create(questionnaire=qn, type=question_type,
                                            description=question_description, necessary=question_necessary,
-                                           surface=question_surface, width=question_width, order=question_order,
+                                           surface=question_surface, width=question_width,
+                                           order=question_order,
                                            change_line=question_change_line, score=question_score,
                                            content1=question_content1, content2=question_content2,
                                            video=question_video, image=question_image,
@@ -338,38 +344,15 @@ def save_qn(request):
             User_create_Questionnaire.objects.create(questionnaire=qn, user=user)
     else:
         if not Organization_create_Questionnaire.objects.filter(questionnaire_id=qn.id).exists():
+            organization = Organization.objects.get(id=organization_id)
             Organization_create_Questionnaire.objects.create(questionnaire=qn,
-                                                             organization=Organization.objects.get(id=organization_id))
-            temp = Organization_2_User.objects.filter(organization_id=organization_id, user=user).first()
+                                                             organization=organization)
+            temp = Organization_2_User.objects.filter(organization_id=organization_id,
+                                                      user=user).first()
             if temp.state == 2:
                 temp.state = 1
                 temp.save()
+    temp_file_path = settings.MEDIA_ROOT + "questionnaire/temp/edit_cache/"
+    # if os.path.exists(temp_file_path):
+    #     shutil.rmtree(temp_file_path)
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'qn_id': qn.id})
-
-
-def open_qn(request):
-    body = json.loads(request.body)
-    qn_id = body.get("qn_id")
-    if not qn_id:
-        return JsonResponse({'errno': 1001, 'errmsg': '问卷id不能为空'})
-    if not Questionnaire.objects.filter(id=qn_id).exists():
-        return JsonResponse({'errno': 1002, 'errmsg': '问卷不存在'})
-    qn = Questionnaire.objects.get(id=qn_id)
-    qn.state = 1
-    qn.release_time = datetime.now()
-    qn.save()
-    return JsonResponse({'errno': 0, 'errmsg': '开启成功'})
-
-
-def close_qn(request):
-    body = json.loads(request.body)
-    qn_id = body.get("qn_id")
-    if not qn_id:
-        return JsonResponse({'errno': 1001, 'errmsg': '问卷id不能为空'})
-    if not Questionnaire.objects.filter(id=qn_id).exists():
-        return JsonResponse({'errno': 1002, 'errmsg': '问卷不存在'})
-    qn = Questionnaire.objects.get(id=qn_id)
-    qn.state = 0
-    qn.finish_time = datetime.now()
-    qn.save()
-    return JsonResponse({'errno': 0, 'errmsg': '关闭成功'})

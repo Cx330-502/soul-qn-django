@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import shutil
 from datetime import datetime
 
 from django.core.files.base import ContentFile
@@ -95,7 +96,7 @@ def save_answers_file(request):
     if not file_name:
         return JsonResponse({'errno': 1003, 'errmsg': '文件名不存在'})
     decoded_file = base64.b64decode(file)
-    save_path = os.path.join(settings.MEDIA_ROOT, 'questionnaire/temp/')
+    save_path = os.path.join(settings.MEDIA_ROOT, 'questionnaire/temp/answer_cache/')
     file_path = os.path.join(save_path, file_name)
     os.makedirs(save_path, exist_ok=True)
     while os.path.exists(file_path):
@@ -192,7 +193,7 @@ def submit_answers(request):
         question = Question.objects.get(id=question_id)
         answer1 = answer.get('answer')
         type0 = question.type % 10
-        if type0 == 1 or type0 == 2 or type0 == 5:
+        if type0 == 1 or type0 == 2 or type0 == 5 or type0 == 6 or type0 == 7 or type0 == 8 or type0 == 9:
             score = None
             if qn.type == 1:
                 if type0 == 1 or type0 == 5 or type0 == 6 or type0 == 7 or type0 == 8 or type0 == 9:
@@ -201,8 +202,8 @@ def submit_answers(request):
                     else:
                         score = question.score
                 elif type0 == 2:
-                    answer_list = question.answer2.split('===')
-                    answer_list2 = answer1.split('===')
+                    answer_list = question.answer2.split('###')
+                    answer_list2 = answer1.split('###')
                     for answer2 in answer_list2:
                         if answer2 not in answer_list:
                             score = 0
@@ -212,7 +213,8 @@ def submit_answers(request):
                             score = question.score // 2
                         else:
                             score = question.score
-            Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer=answer1, score=score)
+            Question_answer.objects.create(answer_sheet=answer_sheet, question=question,
+                                           answer=answer1, score=score)
         elif type0 == 3:
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer2=answer1)
         elif type0 == 4:
@@ -235,4 +237,7 @@ def submit_answers(request):
                 answer_sheet.score += answer.score
     qn.collection_num += 1
     qn.save()
+    temp_file_path = settings.MEDIA_ROOT + "questionnaire/temp/edit_cache/"
+    # if os.path.exists(temp_file_path):
+    #     shutil.rmtree(temp_file_path)
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'score': answer_sheet.score})

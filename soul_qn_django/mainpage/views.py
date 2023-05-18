@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from Qn.models import *
 import json
-
+import shutil
 
 # Create your views here.
 # 生成链接
@@ -87,12 +87,13 @@ def delete_qn(request):
         qn.delete()
         path = settings.MEDIA_ROOT + '/questionnaire/' + str(qn_id)
         if os.path.exists(path):
-            recursive_delete(path)
+            shutil.rmtree(path)
         return JsonResponse({'errno': 0, 'errmsg': '成功'})
     if not Organization.objects.filter(id=organization_id).exists():
         return JsonResponse({'errno': 1005, 'errmsg': '组织不存在'})
     organization = Organization.objects.get(id=organization_id)
-    if not Organization_create_Questionnaire.objects.filter(organization=organization, questionnaire=qn).exists():
+    if not Organization_create_Questionnaire.objects.filter(organization=organization,
+                                                            questionnaire=qn).exists():
         return JsonResponse({'errno': 1006, 'errmsg': '组织未发布该问卷'})
     if Organization_2_User.objects.filter(organization=organization, user=user).exists():
         return JsonResponse({'errno': 1007, 'errmsg': '用户不是该组织成员'})
@@ -102,7 +103,7 @@ def delete_qn(request):
     qn.delete()
     path = settings.MEDIA_ROOT + '/questionnaire/' + str(qn_id)
     if os.path.exists(path):
-        recursive_delete(path)
+        shutil.rmtree(path)
     return JsonResponse({'errno': 0, 'errmsg': '成功'})
 
 
@@ -264,8 +265,10 @@ def copy_qn(request):
                                           state=0, release_time=null, finish_time=null,
                                           start_time=null, duration=qn.duration,
                                           password=qn.password, description=qn.description,
-                                          header_image=header_image, background_image=background_image,
-                                          font_color=qn.font_color, header_font_color=qn.header_font_color,
+                                          header_image=header_image,
+                                          background_image=background_image,
+                                          font_color=qn.font_color,
+                                          header_font_color=qn.header_font_color,
                                           question_num_visible=qn.question_num_visible)
     User_create_Questionnaire.objects.create(user=user, questionnaire=new_qn)
     if not Question.objects.filter(questionnaire=qn).exists():
@@ -301,6 +304,34 @@ def copy_qn(request):
                                                score=question.score, content1=question.content1,
                                                content2=question.content2, video=video, image=image,
                                                answer1=question.answer1, answer2=question.answer2,
-                                               num_limit=question.num_limit, multi_lines=question.multi_lines,
+                                               num_limit=question.num_limit,
+                                               multi_lines=question.multi_lines,
                                                unit=question.unit)
     return JsonResponse({'errno': 0, 'errmsg': '成功'})
+
+def open_qn(request):
+    body = json.loads(request.body)
+    qn_id = body.get("qn_id")
+    if not qn_id:
+        return JsonResponse({'errno': 1001, 'errmsg': '问卷id不能为空'})
+    if not Questionnaire.objects.filter(id=qn_id).exists():
+        return JsonResponse({'errno': 1002, 'errmsg': '问卷不存在'})
+    qn = Questionnaire.objects.get(id=qn_id)
+    qn.state = 1
+    qn.release_time = datetime.now()
+    qn.save()
+    return JsonResponse({'errno': 0, 'errmsg': '开启成功'})
+
+
+def close_qn(request):
+    body = json.loads(request.body)
+    qn_id = body.get("qn_id")
+    if not qn_id:
+        return JsonResponse({'errno': 1001, 'errmsg': '问卷id不能为空'})
+    if not Questionnaire.objects.filter(id=qn_id).exists():
+        return JsonResponse({'errno': 1002, 'errmsg': '问卷不存在'})
+    qn = Questionnaire.objects.get(id=qn_id)
+    qn.state = 0
+    qn.finish_time = datetime.now()
+    qn.save()
+    return JsonResponse({'errno': 0, 'errmsg': '关闭成功'})
