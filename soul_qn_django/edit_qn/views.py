@@ -279,6 +279,8 @@ def save_qn(request):
             question_score = None
         question_content1 = question.get("content1")
         if not question_content1:
+            if question_type == 1 or question_type == 2 or question_type == 6:
+                return JsonResponse({'errno': 1009, 'errmsg': '问题选项不能为空'})
             question_content1 = None
         question_content2 = question.get("content2")
         if not question_content2:

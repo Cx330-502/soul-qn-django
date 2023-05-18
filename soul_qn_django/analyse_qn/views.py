@@ -1,14 +1,5 @@
 import json
 
-from reportlab.graphics.charts.piecharts import Pie
-from reportlab.graphics.shapes import Drawing, String
-from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-
 from Qn.models import *
 from django.conf import settings
 from django.http import JsonResponse
@@ -35,6 +26,12 @@ def get_all_info(request):
     all_info = {'qn': qn.info()}
     for question in qn.question_set.all():
         all_info['qn']['questions'].append(question.info())
+        try:
+            extra_data = get_extra_data(question)
+            all_info['qn']['questions'][-1]['extra_data'] = extra_data
+        except Exception as e:
+            print(e)
+            return JsonResponse({'errno': 1005, 'errmsg': '获取额外数据失败'})
     all_info['answer_sheets'] = []
     for answer_sheet in Answer_sheet.objects.filter(questionnaire=qn).all():
         all_info['answer_sheets'].append(answer_sheet.info())
@@ -93,7 +90,13 @@ def export_data(request):
     if not qn_id or not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1003, 'errmsg': '问卷编号错误'})
     qn = Questionnaire.objects.get(id=qn_id)
-    if User_create_Questionnaire.objects.filter(user=user, questionnaire=qn).exists():
+    organization_id = body.get('organization_id')
+    if organization_id:
+        organization = Organization.objects.filter(id=organization_id).first()
+        if not Organization_create_Questionnaire.objects.filter(organization=organization,
+                                                                questionnaire=qn).exists():
+            return JsonResponse({'errno': 1004, 'errmsg': '无导出权限'})
+    if not User_create_Questionnaire.objects.filter(user=user, questionnaire=qn).exists():
         return JsonResponse({'errno': 1004, 'errmsg': '无导出权限'})
     wb = xlwt.Workbook(encoding='utf-8')
     sheet = wb.add_sheet('问卷数据')
@@ -106,7 +109,7 @@ def export_data(request):
         question_list.append(question)
     question_list.sort(key=lambda x: x.order)
     for question in question_list:
-        columns += [question.order + question.title]
+        columns += [str(question.order) + str(question.surface)]
     for col_num in range(len(columns)):
         sheet.write(row_num, col_num, columns[col_num], font_style)
     font_style = xlwt.XFStyle()
@@ -117,22 +120,23 @@ def export_data(request):
     for answer_sheet in answer_sheet_list:
         row_num += 1
         if qn.permission == 2 or qn.permission == 4:
-            row = ['匿名用户', answer_sheet.duration, answer_sheet.submit_time]
-        elif qn.permission == 0 and answer_sheet.user:
-            row = ['匿名用户', answer_sheet.duration, answer_sheet.submit_time]
+            row = ['匿名用户', answer_sheet.duration, str(answer_sheet.submit_time)]
+        elif qn.permission == 0 and answer_sheet.answerer:
+            row = ['匿名用户', answer_sheet.duration, str(answer_sheet.submit_time)]
         else:
-            row = [answer_sheet.user.username, answer_sheet.duration, answer_sheet.submit_time]
+            row = [answer_sheet.user.username, answer_sheet.duration, str(answer_sheet.submit_time)]
         answer_list = []
         for question in question_list:
             answer = Question_answer.objects.filter(answer_sheet=answer_sheet, question=question).first()
-            answer_list.append(answer)
+            if answer is not None:
+                answer_list.append(answer)
         answer_list.sort(key=lambda x: x.question.order)
         for answer in answer_list:
             if not answer:
                 row.append('')
             else:
-                if answer.question.type != 4 and answer.question.type != 5:
-                    row.append(answer.answer1)
+                if answer.question.type != 3 and answer.question.type != 4:
+                    row.append(answer.answer)
                 if answer.question.type == 3:
                     row.append(answer.answer2)
                 if answer.question.type == 4:
@@ -205,3 +209,165 @@ def generate_report(request):
     #         pie.data.append(temp)
     #         pie.labels.append(answer["answer"] + " - " + temp + "%" )
     pass
+
+
+def get_extra_data(question):
+    extra_data = {}
+    if question.type == 1 or question.type == 6:
+        extra_data['options'] = []
+        if not question.content1:
+            return extra_data
+        temp_list = question.content1.split('###')
+        for i in range(len(temp_list)):
+            extra_data['options'].append({'option': chr(ord('A') + i), 'content': temp_list[i], 'count': 0})
+        extra_data['total'] = 0
+        extra_data['options'].sort(key=lambda x: x['option'])
+        for answer in Question_answer.objects.filter(question=question).all():
+            for option in extra_data['options']:
+                if answer.answer1 == option['option']:
+                    option['count'] += 1
+                    extra_data['total'] += 1
+        percent = 100
+        extra_data['options'].sort(key=lambda x: x['count'], reverse=True)
+        for option in extra_data['options']:
+            temp = option['count'] / extra_data['total'] * 100
+            percent -= temp
+            if percent <= 0:
+                temp = temp + percent
+                percent = 0
+            option['percent'] = temp
+        if len(extra_data['options']) > 0:
+            extra_data['most_option'] = extra_data['options'][0]
+            extra_data['least_option'] = extra_data['options'][-1]
+        else:
+            extra_data['most_option'] = None
+            extra_data['least_option'] = None
+        extra_data['options'].sort(key=lambda x: x['option'])
+    elif question.type == 2:
+        extra_data['options'] = []
+        if not question.content1:
+            return extra_data
+        temp_list = question.content1.split('###')
+        for i in range(len(temp_list)):
+            extra_data['options'].append({'option': chr(ord('A') + i), 'content': temp_list[i], 'count': 0})
+        extra_data['choices'] = []
+        extra_data['total'] = 0
+        extra_data['options'].sort(key=lambda x: x['option'])
+        for answer in Question_answer.objects.filter(question=question).all():
+            for i in range(len(answer.answer1)):
+                for option in extra_data['options']:
+                    if answer.answer1[i] == option['option']:
+                        option['count'] += 1
+            flag = 0
+            for choice in extra_data['choices']:
+                if answer.answer1 == choice['choice']:
+                    choice['count'] += 1
+                    flag = 1
+                    break
+            if not flag:
+                extra_data['choices'].append({'choice': answer.answer1, 'count': 1})
+            extra_data['total'] += 1
+        extra_data['choices'].sort(key=lambda x: x['count'], reverse=True)
+        percent = 100
+        for choice in extra_data['choices']:
+            temp = choice['count'] / extra_data['total'] * 100
+            percent -= temp
+            if percent <= 0:
+                temp = temp + percent
+                percent = 0
+            choice['percent'] = temp
+        extra_data['options'].sort(key=lambda x: x['count'], reverse=True)
+        for option in extra_data['options']:
+            temp = option['count'] / extra_data['total'] * 100
+            option['percent'] = temp
+        if len(extra_data['choices']) == 0:
+            extra_data['most_choice'] = None
+            extra_data['least_choice'] = None
+        else:
+            extra_data['most_choice'] = extra_data['choices'][0]
+            extra_data['least_choice'] = extra_data['choices'][-1]
+        if len(extra_data['options']) == 0:
+            extra_data['most_option'] = None
+            extra_data['least_option'] = None
+        else:
+            extra_data['most_option'] = extra_data['options'][0]
+            extra_data['least_option'] = extra_data['options'][-1]
+        extra_data['options'].sort(key=lambda x: x['option'])
+        extra_data['choices'].sort(key=lambda x: x['choice'])
+    elif question.type == 3:
+        extra_data['answers'] = []
+        total = 0
+        for answer in Question_answer.objects.filter(question=question).all():
+            extra_data['answers'].append({'answer': answer.answer2})
+            total += 1
+        extra_data['total'] = total
+    elif question.type == 4:
+        extra_data['answers'] = []
+        total = 0
+        for answer in Question_answer.objects.filter(question=question).all():
+            answer = settings.MEDIA_ROOT + answer.answer5.url if answer.answer5 else None
+            if answer:
+                extra_data['answers'].append({'answer': answer})
+                total += 1
+        extra_data['total'] = total
+    elif question.type == 5 or question.type == 8:
+        extra_data['answers'] = []
+        total = 0
+        for answer in Question_answer.objects.filter(question=question).all():
+            answer = answer.answer
+            total += 1
+            flag = 0
+            for answer0 in extra_data['answers']:
+                if answer0['answer'] == answer:
+                    answer0['count'] += 1
+                    flag = 1
+                    break
+            if not flag:
+                extra_data['answers'].append({'answer': answer, 'count': 1})
+        extra_data['total'] = total
+        extra_data['answers'].sort(key=lambda x: x['count'], reverse=True)
+        percent = 100
+        for answer in extra_data['answers']:
+            temp = answer['count'] / extra_data['total'] * 100
+            percent -= temp
+            if percent <= 0:
+                temp = temp + percent
+                percent = 0
+            answer['percent'] = temp
+        if len(extra_data['answers']) > 0:
+            extra_data['most_answer'] = extra_data['answers'][0]
+            extra_data['least_answer'] = extra_data['answers'][-1]
+        else:
+            extra_data['most_answer'] = None
+            extra_data['least_answer'] = None
+    elif question.type == 7 or question.type == 9:
+        extra_data['answers'] = []
+        total = 0
+        sum = 0
+        for answer in Question_answer.objects.filter(question=question).all():
+            answer = answer.answer
+            total += 1
+            sum += int(answer)
+            flag = 0
+            for answer0 in extra_data['answers']:
+                if answer0['answer'] == answer:
+                    answer0['count'] += 1
+                    flag = 1
+                    break
+            if not flag:
+                extra_data['answers'].append({'answer': answer, 'count': 1})
+        extra_data['total'] = total
+        extra_data['answers'].sort(key=lambda x: x['count'], reverse=True)
+        percent = 100
+        for answer in extra_data['answers']:
+            temp = answer['count'] / extra_data['total'] * 100
+            percent -= temp
+            if percent <= 0:
+                temp = temp + percent
+                percent = 0
+            answer['percent'] = temp
+        if len(extra_data['answers']) > 0:
+            extra_data['most_answer'] = extra_data['answers'][0]
+            extra_data['least_answer'] = extra_data['answers'][-1]
+        extra_data['average'] = sum / total
+    return extra_data
