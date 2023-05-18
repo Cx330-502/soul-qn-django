@@ -1,5 +1,7 @@
 import base64
 import os
+from datetime import datetime
+
 import requests
 from django.core.files.base import ContentFile
 from django.http import JsonResponse
@@ -293,7 +295,7 @@ def save_qn(request):
                 with open(question_video, 'rb') as f:
                     file_content = f.read()
                     file_name = f.name.split('/')[-1]
-                question_video = ContentFile(file_content, file_name)
+                    question_video = ContentFile(file_content, file_name)
             except Exception as e:
                 print(e)
                 question_video = None
@@ -304,8 +306,8 @@ def save_qn(request):
             try:
                 with open(question_image, 'rb') as f:
                     file_content = f.read()
-                    file_name = f.name
-                question_image = ContentFile(file_content, file_name)
+                    file_name = f.name.split('/')[-1]
+                    question_image = ContentFile(file_content, file_name)
             except:
                 question_image = None
         question_answer1 = question.get("answer1")
@@ -343,3 +345,31 @@ def save_qn(request):
                 temp.state = 1
                 temp.save()
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'qn_id': qn.id})
+
+
+def open_qn(request):
+    body = json.loads(request.body)
+    qn_id = body.get("qn_id")
+    if not qn_id:
+        return JsonResponse({'errno': 1001, 'errmsg': '问卷id不能为空'})
+    if not Questionnaire.objects.filter(id=qn_id).exists():
+        return JsonResponse({'errno': 1002, 'errmsg': '问卷不存在'})
+    qn = Questionnaire.objects.get(id=qn_id)
+    qn.state = 1
+    qn.release_time = datetime.now()
+    qn.save()
+    return JsonResponse({'errno': 0, 'errmsg': '开启成功'})
+
+
+def close_qn(request):
+    body = json.loads(request.body)
+    qn_id = body.get("qn_id")
+    if not qn_id:
+        return JsonResponse({'errno': 1001, 'errmsg': '问卷id不能为空'})
+    if not Questionnaire.objects.filter(id=qn_id).exists():
+        return JsonResponse({'errno': 1002, 'errmsg': '问卷不存在'})
+    qn = Questionnaire.objects.get(id=qn_id)
+    qn.state = 0
+    qn.finish_time = datetime.now()
+    qn.save()
+    return JsonResponse({'errno': 0, 'errmsg': '关闭成功'})

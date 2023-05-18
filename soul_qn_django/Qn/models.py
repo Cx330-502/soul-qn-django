@@ -93,7 +93,7 @@ class Questionnaire(models.Model):
     permission = models.IntegerField("问卷权限", default=0)
     collection_num = models.IntegerField("问卷收集人数", default=0)
     state = models.IntegerField("问卷状态", default=0)
-    # 0表示审核中,1表示已发布,-1表示发布失败,2表示尚未开始,-2表示已结束
+    # 0表示未发布,1表示已发布,-1表示发布失败,2表示尚未开始,-2表示已结束,-3表示在回收站内
     release_time = models.DateTimeField("问卷发布时间", null=True)
     finish_time = models.DateTimeField("问卷截止时间", null=True)
     start_time = models.DateTimeField("问卷开始时间", null=True)
