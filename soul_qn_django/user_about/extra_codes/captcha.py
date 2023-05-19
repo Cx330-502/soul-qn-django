@@ -22,7 +22,7 @@ class SendEmail:
         text = f'验证码为：{verification_code}'
         message = MIMEText(text, "plain", "utf-8")  # 文本内容，文本格式，编码
         message["Subject"] = Header(self.subject, "utf-8")  # 邮箱主题
-        message["From"] = Header(self.sender, "utf-8")  # 发送者
+        message["From"] = Header(self.sender)  # 发送者
         message["To"] = Header(self.receiver, "utf-8")  # 接收者
         return message, verification_code
 
