@@ -1,5 +1,8 @@
 import re
+from base64 import b64encode, b64decode
+from hashlib import sha256
 
+from cryptography.fernet import Fernet
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
@@ -10,10 +13,23 @@ import user_about.extra_codes.captcha as captchaclass
 import json
 
 
+def encrypt(data, key):
+    f = Fernet(key)
+    decrypted_data = f.encrypt(data.encode())
+    return decrypted_data.decode()
+
+
+def decrypt(data, key):
+    f = Fernet(key)
+    decrypted_data = f.decrypt(data.encode())
+    return decrypted_data.decode()
+
+
 # Create your views here.
-# 发送验证码的视图函数，由前端检查验证码是否正确 （验证码目前不支持QQ邮箱）
+# 发送验证码的视图函数，由前端检查验证码是否正确
 @csrf_exempt
 def captcha(request):
+    key = b'2L0QpUEp09cO-9B8FhZ0eqkTLiw1mZDv6_U7nhGGZho='
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
@@ -23,6 +39,7 @@ def captcha(request):
     except ValidationError:
         return JsonResponse({'errno': 1002, 'errmsg': '邮箱不符合规范'})
     verification = captchaclass.SendEmail(data=captchaclass.data, receiver=receiver_email).send_email()
+    verification = encrypt(verification, key)
     return JsonResponse({'errno': 0, 'errmsg': '验证码发送成功', 'verification': verification})
 
 
@@ -69,7 +86,7 @@ def login(request):
     else:
         return JsonResponse({'errno': 1002, 'errmsg': '用户名或邮箱不存在'})
     if user.password == password:
-        token = user.create_token(3600*24)
+        token = user.create_token(3600 * 24)
         return JsonResponse({'errno': 0, 'errmsg': '登录成功', 'token': token})
     return JsonResponse({'errno': 1003, 'errmsg': '密码错误'})
 
@@ -77,10 +94,12 @@ def login(request):
 # 一个token测试的视图函数，前端传入token，后端验证token是否正确
 @csrf_exempt
 def test_login(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
     token = body.get("token")
     print(token)
     user = auth_token(token)
     if user:
         return JsonResponse({'errno': 0, 'errmsg': '登录成功'})
-    return JsonResponse({'errno': 1001, 'errmsg': '登录失败'})
+    return JsonResponse({'errno': 1002, 'errmsg': '登录失败'})

@@ -2,11 +2,12 @@ from email.header import Header
 from email.mime.text import MIMEText
 from smtplib import SMTP_SSL
 from numpy import random
+from django.template import loader
 
 data = {
     'sender': "olafknowledgegraph@163.com",  # 发送者邮箱，自己用可写死
     'password': "MUVNLBGHOGERATMW",  # 在开启SMTP服务后，可以生成授权码，此处为授权码
-    'subject': "Olaf-knowledge-grafe验证码",  # 邮件主题名，没有违规文字都行
+    'subject': "Soul问卷验证码",  # 邮件主题名，没有违规文字都行
 }
 
 
@@ -19,8 +20,10 @@ class SendEmail:
 
     def load_message(self):
         verification_code = self.generate_verification()
-        text = f'验证码为：{verification_code}'
-        message = MIMEText(text, "plain", "utf-8")  # 文本内容，文本格式，编码
+        context = {'verification_code': verification_code}
+        template = loader.get_template('captcha.html')
+        html = template.render(context)
+        message = MIMEText(html, "html", "utf-8")  # 文本内容，文本格式，编码
         message["Subject"] = Header(self.subject, "utf-8")  # 邮箱主题
         message["From"] = Header(self.sender)  # 发送者
         message["To"] = Header(self.receiver, "utf-8")  # 接收者

@@ -27,7 +27,7 @@ def get_examples(request):
     if not qn_type:
         return JsonResponse({'errno': 1003, 'errmsg': '类型不能为空'})
     if not Questionnaire.objects.filter(public=True).filter(type=qn_type).exists():
-        return JsonResponse({'errno': 1, 'errmsg': '无同类型问卷'})
+        return JsonResponse({'errno': 1, 'errmsg': '无同类型问卷', 'examples': []})
     organization_id = body.get("organization_id")
     if organization_id:
         if not Organization.objects.filter(id=organization_id).exists():
@@ -135,8 +135,8 @@ def save_qn_file(request):
         return JsonResponse({'errno': 1004, 'errmsg': '文件名不能为空'})
     decoded_file = base64.b64decode(file)
     save_path = settings.MEDIA_ROOT + "questionnaire/temp/edit_cache/"
-    file_path = os.path.join(save_path, file_name)
     os.makedirs(save_path, exist_ok=True)
+    file_path = os.path.join(save_path, file_name)
     while os.path.exists(file_path):
         file_path = file_path.split(".")[0] + "_1." + file_path.split(".")[1]
     with open(file_path, 'wb') as f:
