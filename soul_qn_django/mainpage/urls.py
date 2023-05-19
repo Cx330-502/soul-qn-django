@@ -3,8 +3,8 @@ from .views import *
 
 urlpatterns = [
     path('hello/', hello),
-    path('listqn/', listqn_views),
-
+    path('list_qn/', list_qn),
+    path('list_organization/', list_organization),
     path('generate_link', generate_link),
     path('generate_qrcode', generate_qrcode),
 ]
