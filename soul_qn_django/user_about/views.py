@@ -35,14 +35,20 @@ def register(request):
     username = body.get("username")
     password = body.get("password")
     email = body.get("email")
+    if not username:
+        return JsonResponse({'errno': 1002, 'errmsg': '用户名不能为空'})
+    if not password:
+        return JsonResponse({'errno': 1003, 'errmsg': '密码不能为空'})
+    if not email:
+        return JsonResponse({'errno': 1004, 'errmsg': '邮箱不能为空'})
     if not re.match(r"^[a-zA-Z0-9_-]{4,16}$", username):
-        return JsonResponse({'errno': 1002, 'errmsg': '用户名不符合规范'})
+        return JsonResponse({'errno': 1005, 'errmsg': '用户名不符合规范'})
     if not re.match(r"^[a-zA-Z0-9_-]{6,16}$", password):
-        return JsonResponse({'errno': 1003, 'errmsg': '密码不符合规范'})
+        return JsonResponse({'errno': 1006, 'errmsg': '密码不符合规范'})
     if User.objects.filter(username=username).exists():
-        return JsonResponse({'errno': 1004, 'errmsg': '用户名已存在'})
+        return JsonResponse({'errno': 1007, 'errmsg': '用户名已存在'})
     if User.objects.filter(email=email).exists():
-        return JsonResponse({'errno': 1005, 'errmsg': '邮箱已存在'})
+        return JsonResponse({'errno': 1008, 'errmsg': '邮箱已存在'})
     user = User(username=username, password=password, email=email)
     user.save()
     return JsonResponse({'errno': 0, 'errmsg': '注册成功'})
@@ -61,11 +67,11 @@ def login(request):
     elif User.objects.filter(email=username).exists():
         user = User.objects.get(email=username)
     else:
-        return JsonResponse({'errno': 1001, 'errmsg': '用户名或邮箱不存在'})
+        return JsonResponse({'errno': 1002, 'errmsg': '用户名或邮箱不存在'})
     if user.password == password:
-        token = user.create_token(3600)
+        token = user.create_token(3600*24)
         return JsonResponse({'errno': 0, 'errmsg': '登录成功', 'token': token})
-    return JsonResponse({'errno': 1002, 'errmsg': '密码错误'})
+    return JsonResponse({'errno': 1003, 'errmsg': '密码错误'})
 
 
 # 一个token测试的视图函数，前端传入token，后端验证token是否正确

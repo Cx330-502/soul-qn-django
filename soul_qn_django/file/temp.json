@@ -1,0 +1,212 @@
+{
+    "errno": 0,
+    "errmsg": "成功",
+    "all_info": {
+        "qn": {
+            "id": 3,
+            "name": "",
+            "type": 1,
+            "public": true,
+            "permission": 0,
+            "collection_num": 1,
+            "state": 1,
+            "release_time": null,
+            "finish_time": null,
+            "start_time": null,
+            "duration": null,
+            "password": null,
+            "title": "2",
+            "description": null,
+            "background_image": "D:/static/media//questionnaire/temp/3_aFSKVOT.txt",
+            "header_image": null,
+            "font_color": null,
+            "header_font_color": null,
+            "questions": [
+                {
+                    "id": 3,
+                    "type": 1,
+                    "description": null,
+                    "questionnaire_id": 3,
+                    "necessary": false,
+                    "surface": null,
+                    "width": 200,
+                    "order": 1,
+                    "change_line": 0,
+                    "score": null,
+                    "content1": null,
+                    "content2": null,
+                    "video": null,
+                    "image": null,
+                    "answer1": null,
+                    "answer2": null,
+                    "num_limit": null,
+                    "multi_lines": null,
+                    "unit": null,
+                    "extra_data": {
+                        "options": []
+                    }
+                },
+                {
+                    "id": 4,
+                    "type": 2,
+                    "description": null,
+                    "questionnaire_id": 3,
+                    "necessary": false,
+                    "surface": null,
+                    "width": 200,
+                    "order": 2,
+                    "change_line": 0,
+                    "score": null,
+                    "content1": null,
+                    "content2": null,
+                    "video": null,
+                    "image": null,
+                    "answer1": null,
+                    "answer2": null,
+                    "num_limit": null,
+                    "multi_lines": null,
+                    "unit": null,
+                    "extra_data": {
+                        "options": []
+                    }
+                },
+                {
+                    "id": 5,
+                    "type": 3,
+                    "description": null,
+                    "questionnaire_id": 3,
+                    "necessary": false,
+                    "surface": null,
+                    "width": 200,
+                    "order": 3,
+                    "change_line": 0,
+                    "score": null,
+                    "content1": null,
+                    "content2": null,
+                    "video": null,
+                    "image": null,
+                    "answer1": null,
+                    "answer2": null,
+                    "num_limit": null,
+                    "multi_lines": null,
+                    "unit": null,
+                    "extra_data": {
+                        "answers": [],
+                        "total": 0
+                    }
+                },
+                {
+                    "id": 6,
+                    "type": 4,
+                    "description": null,
+                    "questionnaire_id": 3,
+                    "necessary": false,
+                    "surface": null,
+                    "width": 200,
+                    "order": 4,
+                    "change_line": 0,
+                    "score": null,
+                    "content1": null,
+                    "content2": null,
+                    "video": null,
+                    "image": null,
+                    "answer1": null,
+                    "answer2": null,
+                    "num_limit": null,
+                    "multi_lines": null,
+                    "unit": null,
+                    "extra_data": {
+                        "answers": [
+                            {
+                                "answer": "D:/static/media//3_1_1_fBmtMJ3.txt"
+                            }
+                        ],
+                        "total": 1
+                    }
+                },
+                {
+                    "id": 7,
+                    "type": 5,
+                    "description": null,
+                    "questionnaire_id": 3,
+                    "necessary": false,
+                    "surface": null,
+                    "width": 200,
+                    "order": 5,
+                    "change_line": 0,
+                    "score": null,
+                    "content1": null,
+                    "content2": null,
+                    "video": null,
+                    "image": null,
+                    "answer1": null,
+                    "answer2": null,
+                    "num_limit": null,
+                    "multi_lines": null,
+                    "unit": null,
+                    "extra_data": {
+                        "answers": [],
+                        "total": 0,
+                        "most_answer": null,
+                        "least_answer": null
+                    }
+                },
+                {
+                    "id": 8,
+                    "type": 6,
+                    "description": null,
+                    "questionnaire_id": 3,
+                    "necessary": false,
+                    "surface": null,
+                    "width": 200,
+                    "order": 6,
+                    "change_line": 0,
+                    "score": null,
+                    "content1": null,
+                    "content2": null,
+                    "video": null,
+                    "image": null,
+                    "answer1": null,
+                    "answer2": null,
+                    "num_limit": null,
+                    "multi_lines": null,
+                    "unit": null,
+                    "extra_data": {
+                        "options": []
+                    }
+                }
+            ]
+        },
+        "answer_sheets": [
+            {
+                "answer_sheet_id": 6,
+                "questionnaire_id": 3,
+                "answerer_id": 1,
+                "submit_time": "2023-05-17T16:24:09.168Z",
+                "duration": null,
+                "score": null,
+                "state": 1,
+                "answers": [
+                    {
+                        "answer_sheet_id": 6,
+                        "question_id": 3,
+                        "question_order": 1,
+                        "answer": null,
+                        "answer2": null,
+                        "answer5": null,
+                        "score": null
+                    },
+                    {
+                        "answer_sheet_id": 6,
+                        "question_id": 6,
+                        "question_order": 4,
+                        "answer": null,
+                        "answer2": null,
+                        "answer5": "D:/static/media//3_1_1_fBmtMJ3.txt",
+                        "score": null
+                    }
+                ]
+            }
+        ]
+    }
+}
