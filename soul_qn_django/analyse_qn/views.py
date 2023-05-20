@@ -21,23 +21,36 @@ def get_all_info(request):
     if not qn_id or not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1003, 'errmsg': '问卷编号错误'})
     qn = Questionnaire.objects.get(id=qn_id)
-    if not User_create_Questionnaire.objects.filter(user=user, questionnaire=qn).exists():
-        return JsonResponse({'errno': 1004, 'errmsg': '无权限'})
+    organization_id = body.get('organization_id')
+    organization_num = 0
+    if organization_id:
+        if not Organization.objects.filter(id=organization_id).exists():
+            return JsonResponse({'errno': 1004, 'errmsg': '组织编号错误'})
+        organization = Organization.objects.get(id=organization_id)
+        if not Organization_2_User.objects.filter(user=user, organization=organization).exists():
+            return JsonResponse({'errno': 1005, 'errmsg': '无权限'})
+        if Organization_2_User.objects.get(user=user, organization=organization).state <= 2:
+            return JsonResponse({'errno': 1006, 'errmsg': '权限不足'})
+        for temp in Organization_2_User.objects.filter(organization=organization).all():
+            if temp.state >= 1:
+                organization_num += 1
+    elif not User_create_Questionnaire.objects.filter(user=user, questionnaire=qn).exists():
+        return JsonResponse({'errno': 1007, 'errmsg': '无权限'})
     all_info = {'qn': qn.info()}
     for question in qn.question_set.all():
         all_info['qn']['questions'].append(question.info())
-        try:
-            extra_data = get_extra_data(question)
-            all_info['qn']['questions'][-1]['extra_data'] = extra_data
-        except Exception as e:
-            print(e)
-            return JsonResponse({'errno': 1005, 'errmsg': '获取额外数据失败'})
+        #try:
+        extra_data = get_extra_data(question)
+        all_info['qn']['questions'][-1]['extra_data'] = extra_data
+        # except Exception as e:
+        #     print(e)
+        #     return JsonResponse({'errno': 1008, 'errmsg': '获取额外数据失败'})
     all_info['answer_sheets'] = []
     for answer_sheet in Answer_sheet.objects.filter(questionnaire=qn).all():
         all_info['answer_sheets'].append(answer_sheet.info())
         for answer in Question_answer.objects.filter(answer_sheet=answer_sheet).all():
             all_info['answer_sheets'][-1]['answers'].append(answer.info())
-    return JsonResponse({'errno': 0, 'errmsg': '成功', 'all_info': all_info})
+    return JsonResponse({'errno': 0, 'errmsg': '成功', 'all_info': all_info, 'organization_num': organization_num})
 
 
 # 更新问卷分数
@@ -49,24 +62,20 @@ def update_score(request):
     user = auth_token(token)
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误或已过期'})
-    qn_id = body.get('qn_id')
-    if not qn_id or not Questionnaire.objects.filter(id=qn_id).exists():
-        return JsonResponse({'errno': 1003, 'errmsg': '问卷编号错误'})
-    qn = Questionnaire.objects.get(id=qn_id)
     answer_sheet_id = body.get('answer_sheet_id')
     if not answer_sheet_id or not Answer_sheet.objects.filter(id=answer_sheet_id).exists():
-        return JsonResponse({'errno': 1004, 'errmsg': '答卷编号错误'})
+        return JsonResponse({'errno': 1003, 'errmsg': '答卷编号错误'})
     answer_sheet = Answer_sheet.objects.get(id=answer_sheet_id)
     question_id = body.get('question_id')
     if not question_id or not Question.objects.filter(id=question_id).exists():
-        return JsonResponse({'errno': 1005, 'errmsg': '问题编号错误'})
+        return JsonResponse({'errno': 1004, 'errmsg': '问题编号错误'})
     question = Question.objects.get(id=question_id)
     new_score = body.get('new_score')
     if not new_score:
-        return JsonResponse({'errno': 1006, 'errmsg': '更新分数不能为空'})
+        return JsonResponse({'errno': 1005, 'errmsg': '更新分数不能为空'})
+    if not Question_answer.objects.filter(answer_sheet=answer_sheet, question=question).exists():
+        return JsonResponse({'errno': 1006, 'errmsg': '答卷中无此回答'})
     answer = Question_answer.objects.filter(answer_sheet=answer_sheet, question=question).first()
-    if not answer.exists():
-        return JsonResponse({'errno': 1007, 'errmsg': '答卷中无此问题'})
     answer.score = new_score
     answer.save()
     answer_sheet.score = 0
@@ -96,8 +105,10 @@ def export_data(request):
         if not Organization_create_Questionnaire.objects.filter(organization=organization,
                                                                 questionnaire=qn).exists():
             return JsonResponse({'errno': 1004, 'errmsg': '无导出权限'})
+        if Organization_2_User.objects.get(user=user, organization=organization).state <= 2:
+            return JsonResponse({'errno': 1005, 'errmsg': '权限不足'})
     if not User_create_Questionnaire.objects.filter(user=user, questionnaire=qn).exists():
-        return JsonResponse({'errno': 1004, 'errmsg': '无导出权限'})
+        return JsonResponse({'errno': 1006, 'errmsg': '无导出权限'})
     wb = xlwt.Workbook(encoding='utf-8')
     sheet = wb.add_sheet('问卷数据')
     row_num = 0
@@ -121,10 +132,10 @@ def export_data(request):
         row_num += 1
         if qn.permission == 2 or qn.permission == 4:
             row = ['匿名用户', answer_sheet.duration, str(answer_sheet.submit_time)]
-        elif qn.permission == 0 and answer_sheet.answerer:
+        elif qn.permission == 0:
             row = ['匿名用户', answer_sheet.duration, str(answer_sheet.submit_time)]
         else:
-            row = [answer_sheet.user.username, answer_sheet.duration, str(answer_sheet.submit_time)]
+            row = [answer_sheet.answerer.username, answer_sheet.duration, str(answer_sheet.submit_time)]
         answer_list = []
         for question in question_list:
             answer = Question_answer.objects.filter(answer_sheet=answer_sheet, question=question).first()
@@ -224,9 +235,9 @@ def get_extra_data(question):
         extra_data['options'].sort(key=lambda x: x['option'])
         for answer in Question_answer.objects.filter(question=question).all():
             for option in extra_data['options']:
-                if answer.answer1 == option['option']:
+                if answer.answer == option['option']:
                     option['count'] += 1
-                    extra_data['total'] += 1
+            extra_data['total'] += 1
         percent = 100
         extra_data['options'].sort(key=lambda x: x['count'], reverse=True)
         for option in extra_data['options']:
@@ -254,18 +265,18 @@ def get_extra_data(question):
         extra_data['total'] = 0
         extra_data['options'].sort(key=lambda x: x['option'])
         for answer in Question_answer.objects.filter(question=question).all():
-            for i in range(len(answer.answer1)):
+            for i in range(len(answer.answer)):
                 for option in extra_data['options']:
-                    if answer.answer1[i] == option['option']:
+                    if answer.answer[i] == option['option']:
                         option['count'] += 1
             flag = 0
             for choice in extra_data['choices']:
-                if answer.answer1 == choice['choice']:
+                if answer.answer == choice['choice']:
                     choice['count'] += 1
                     flag = 1
                     break
             if not flag:
-                extra_data['choices'].append({'choice': answer.answer1, 'count': 1})
+                extra_data['choices'].append({'choice': answer.answer, 'count': 1})
             extra_data['total'] += 1
         extra_data['choices'].sort(key=lambda x: x['count'], reverse=True)
         percent = 100

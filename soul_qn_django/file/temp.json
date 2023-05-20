@@ -1,43 +1,568 @@
 {
-    "token": "{{token}}",
-    "qn_id": "1",
-    "answers": [
-        {
-            "question_id": "1",
-            "answer": "1"
+    "errno": 0,
+    "errmsg": "成功",
+    "all_info": {
+        "qn": {
+            "id": 1,
+            "name": "",
+            "type": 1,
+            "public": true,
+            "permission": 1,
+            "collection_num": 1,
+            "state": 1,
+            "release_time": "2023-05-20T08:35:06.541Z",
+            "finish_time": "2024-12-31T15:59:59Z",
+            "start_time": "2019-05-31T16:00:00Z",
+            "duration": 3600,
+            "password": "password",
+            "title": "Olaf问卷",
+            "description": "啊？这是什么，描述？填一下",
+            "background_image": "D:/static/media//questionnaire/temp/edit_cache/3_1_1.png",
+            "header_image": "D:/static/media//questionnaire/temp/edit_cache/3_1_1_1.png",
+            "font_color": "#000000",
+            "header_font_color": "#000000",
+            "questions": [
+                {
+                    "id": 1,
+                    "type": 1,
+                    "description": "这是一个单选题",
+                    "questionnaire_id": 1,
+                    "necessary": true,
+                    "surface": "这是一个单选题的题面",
+                    "width": 100,
+                    "order": 1,
+                    "change_line": 1,
+                    "score": 1,
+                    "content1": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "content2": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "video": "D:/static/media//questionnaire/1/question/1/4.png",
+                    "image": "D:/static/media//questionnaire/1/question/1/4_1.png",
+                    "answer1": "A",
+                    "answer2": "B",
+                    "num_limit": 20,
+                    "multi_lines": null,
+                    "unit": "cm",
+                    "extra_data": {
+                        "options": [
+                            {
+                                "option": "A",
+                                "content": "这是A选项",
+                                "count": 0,
+                                "percent": 0.0
+                            },
+                            {
+                                "option": "B",
+                                "content": "这是B选项",
+                                "count": 0,
+                                "percent": 0.0
+                            },
+                            {
+                                "option": "C",
+                                "content": "这是C选项",
+                                "count": 0,
+                                "percent": 0.0
+                            },
+                            {
+                                "option": "D",
+                                "content": "这是D选项",
+                                "count": 0,
+                                "percent": 0.0
+                            },
+                            {
+                                "option": "E",
+                                "content": "这是E选项",
+                                "count": 0,
+                                "percent": 0.0
+                            }
+                        ],
+                        "total": 1,
+                        "most_option": {
+                            "option": "A",
+                            "content": "这是A选项",
+                            "count": 0,
+                            "percent": 0.0
+                        },
+                        "least_option": {
+                            "option": "E",
+                            "content": "这是E选项",
+                            "count": 0,
+                            "percent": 0.0
+                        }
+                    }
+                },
+                {
+                    "id": 2,
+                    "type": 2,
+                    "description": "这是一个多选题",
+                    "questionnaire_id": 1,
+                    "necessary": true,
+                    "surface": "这是一个多选题的题面",
+                    "width": 100,
+                    "order": 2,
+                    "change_line": 1,
+                    "score": 2,
+                    "content1": "这A是A选项###这B是B选项###这C是C选项###这D是D选项###这E是E选项",
+                    "content2": "这A是A选项###这B是B选项###这C是C选项###这D是D选项###这E是E选项",
+                    "video": "D:/static/media//questionnaire/1/question/2/6.png",
+                    "image": "D:/static/media//questionnaire/1/question/2/6_1.png",
+                    "answer1": "ABC",
+                    "answer2": "AB",
+                    "num_limit": 20,
+                    "multi_lines": null,
+                    "unit": "cm",
+                    "extra_data": {
+                        "options": [
+                            {
+                                "option": "A",
+                                "content": "这A是A选项",
+                                "count": 1,
+                                "percent": 100.0
+                            },
+                            {
+                                "option": "B",
+                                "content": "这B是B选项",
+                                "count": 1,
+                                "percent": 100.0
+                            },
+                            {
+                                "option": "C",
+                                "content": "这C是C选项",
+                                "count": 0,
+                                "percent": 0.0
+                            },
+                            {
+                                "option": "D",
+                                "content": "这D是D选项",
+                                "count": 0,
+                                "percent": 0.0
+                            },
+                            {
+                                "option": "E",
+                                "content": "这E是E选项",
+                                "count": 0,
+                                "percent": 0.0
+                            }
+                        ],
+                        "choices": [
+                            {
+                                "choice": "AB",
+                                "count": 1,
+                                "percent": 100.0
+                            }
+                        ],
+                        "total": 1,
+                        "most_choice": {
+                            "choice": "AB",
+                            "count": 1,
+                            "percent": 100.0
+                        },
+                        "least_choice": {
+                            "choice": "AB",
+                            "count": 1,
+                            "percent": 100.0
+                        },
+                        "most_option": {
+                            "option": "A",
+                            "content": "这A是A选项",
+                            "count": 1,
+                            "percent": 100.0
+                        },
+                        "least_option": {
+                            "option": "E",
+                            "content": "这E是E选项",
+                            "count": 0,
+                            "percent": 0.0
+                        }
+                    }
+                },
+                {
+                    "id": 3,
+                    "type": 3,
+                    "description": "这是一个文本题",
+                    "questionnaire_id": 1,
+                    "necessary": true,
+                    "surface": "这是一个文本题的题面",
+                    "width": 100,
+                    "order": 3,
+                    "change_line": 1,
+                    "score": 3,
+                    "content1": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "content2": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项吱吱吱吱吱吱吱吱吱吱吱吱吱吱吱吱吱吱吱",
+                    "video": "D:/static/media//questionnaire/1/question/3/4.png",
+                    "image": "D:/static/media//questionnaire/1/question/3/4_1.png",
+                    "answer1": "AA",
+                    "answer2": "你是个傻逼",
+                    "num_limit": 20,
+                    "multi_lines": null,
+                    "unit": "cm",
+                    "extra_data": {
+                        "answers": [
+                            {
+                                "answer": "3"
+                            }
+                        ],
+                        "total": 1
+                    }
+                },
+                {
+                    "id": 4,
+                    "type": 4,
+                    "description": "这是一个文件题",
+                    "questionnaire_id": 1,
+                    "necessary": true,
+                    "surface": "这是一个文件题的题面",
+                    "width": 100,
+                    "order": 4,
+                    "change_line": 1,
+                    "score": 4,
+                    "content1": "这是A啊啊啊啊啊选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "content2": "这是A选项###这啊啊啊啊是B选项###这是C选项###这是D选项###这是E选项",
+                    "video": "D:/static/media//questionnaire/1/question/4/4.png",
+                    "image": "D:/static/media//questionnaire/1/question/4/4_1.png",
+                    "answer1": null,
+                    "answer2": null,
+                    "num_limit": 20,
+                    "multi_lines": null,
+                    "unit": "cm",
+                    "extra_data": {
+                        "answers": [
+                            {
+                                "answer": "D:/static/media//questionnaire/1/answer_sheet/11/answer/4/4_1.png"
+                            }
+                        ],
+                        "total": 1
+                    }
+                },
+                {
+                    "id": 5,
+                    "type": 5,
+                    "description": "这是一个填空题",
+                    "questionnaire_id": 1,
+                    "necessary": true,
+                    "surface": "这是一个填空题的题面",
+                    "width": 100,
+                    "order": 5,
+                    "change_line": 1,
+                    "score": 1,
+                    "content1": "这是A选项###这是B选项###这////是C选项###这是D选项###这是E选项",
+                    "content2": "这是A选项###这是B选项###这是C选？？？？项###这是D选项###这是E选项",
+                    "video": "D:/static/media//questionnaire/1/question/5/4.png",
+                    "image": "D:/static/media//questionnaire/1/question/5/4_1.png",
+                    "answer1": "AAAAA",
+                    "answer2": "B",
+                    "num_limit": 20,
+                    "multi_lines": null,
+                    "unit": "cm",
+                    "extra_data": {
+                        "answers": [
+                            {
+                                "answer": "5",
+                                "count": 1,
+                                "percent": 100.0
+                            }
+                        ],
+                        "total": 1,
+                        "most_answer": {
+                            "answer": "5",
+                            "count": 1,
+                            "percent": 100.0
+                        },
+                        "least_answer": {
+                            "answer": "5",
+                            "count": 1,
+                            "percent": 100.0
+                        }
+                    }
+                },
+                {
+                    "id": 6,
+                    "type": 6,
+                    "description": "这是一个下拉题",
+                    "questionnaire_id": 1,
+                    "necessary": true,
+                    "surface": "这是一个下拉题的题面",
+                    "width": 100,
+                    "order": 6,
+                    "change_line": 1,
+                    "score": 6,
+                    "content1": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "content2": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "video": "D:/static/media//questionnaire/1/question/6/4.png",
+                    "image": "D:/static/media//questionnaire/1/question/6/4_1.png",
+                    "answer1": "A",
+                    "answer2": "B",
+                    "num_limit": 20,
+                    "multi_lines": null,
+                    "unit": "cm",
+                    "extra_data": {
+                        "options": [
+                            {
+                                "option": "A",
+                                "content": "这是A选项",
+                                "count": 0,
+                                "percent": 0.0
+                            },
+                            {
+                                "option": "B",
+                                "content": "这是B选项",
+                                "count": 0,
+                                "percent": 0.0
+                            },
+                            {
+                                "option": "C",
+                                "content": "这是C选项",
+                                "count": 0,
+                                "percent": 0.0
+                            },
+                            {
+                                "option": "D",
+                                "content": "这是D选项",
+                                "count": 0,
+                                "percent": 0.0
+                            },
+                            {
+                                "option": "E",
+                                "content": "这是E选项",
+                                "count": 0,
+                                "percent": 0.0
+                            }
+                        ],
+                        "total": 1,
+                        "most_option": {
+                            "option": "A",
+                            "content": "这是A选项",
+                            "count": 0,
+                            "percent": 0.0
+                        },
+                        "least_option": {
+                            "option": "E",
+                            "content": "这是E选项",
+                            "count": 0,
+                            "percent": 0.0
+                        }
+                    }
+                },
+                {
+                    "id": 7,
+                    "type": 7,
+                    "description": "这是一个数字题",
+                    "questionnaire_id": 1,
+                    "necessary": true,
+                    "surface": "这是一个数字题的题面",
+                    "width": 100,
+                    "order": 7,
+                    "change_line": 1,
+                    "score": 7,
+                    "content1": "啊啊啊这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "content2": "这是A啊啊啊选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "video": "D:/static/media//questionnaire/1/question/7/4.png",
+                    "image": "D:/static/media//questionnaire/1/question/7/4_1.png",
+                    "answer1": "123",
+                    "answer2": "321",
+                    "num_limit": 20,
+                    "multi_lines": null,
+                    "unit": "cm",
+                    "extra_data": {
+                        "answers": [
+                            {
+                                "answer": "4",
+                                "count": 1,
+                                "percent": 100.0
+                            }
+                        ],
+                        "total": 1,
+                        "most_answer": {
+                            "answer": "4",
+                            "count": 1,
+                            "percent": 100.0
+                        },
+                        "least_answer": {
+                            "answer": "4",
+                            "count": 1,
+                            "percent": 100.0
+                        },
+                        "average": 4.0
+                    }
+                },
+                {
+                    "id": 8,
+                    "type": 8,
+                    "description": "这是一个日期题",
+                    "questionnaire_id": 1,
+                    "necessary": true,
+                    "surface": "这是一个日期题的题面",
+                    "width": 100,
+                    "order": 8,
+                    "change_line": 1,
+                    "score": 8,
+                    "content1": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "content2": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "video": "D:/static/media//questionnaire/1/question/8/4.png",
+                    "image": "D:/static/media//questionnaire/1/question/8/4_1.png",
+                    "answer1": "20031212",
+                    "answer2": "B",
+                    "num_limit": 20,
+                    "multi_lines": null,
+                    "unit": "cm",
+                    "extra_data": {
+                        "answers": [
+                            {
+                                "answer": "4",
+                                "count": 1,
+                                "percent": 100.0
+                            }
+                        ],
+                        "total": 1,
+                        "most_answer": {
+                            "answer": "4",
+                            "count": 1,
+                            "percent": 100.0
+                        },
+                        "least_answer": {
+                            "answer": "4",
+                            "count": 1,
+                            "percent": 100.0
+                        }
+                    }
+                },
+                {
+                    "id": 9,
+                    "type": 9,
+                    "description": "这是一个评分题",
+                    "questionnaire_id": 1,
+                    "necessary": true,
+                    "surface": "这是一个评分题的题面",
+                    "width": 100,
+                    "order": 9,
+                    "change_line": 1,
+                    "score": 9,
+                    "content1": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "content2": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
+                    "video": "D:/static/media//questionnaire/1/question/9/4.png",
+                    "image": "D:/static/media//questionnaire/1/question/9/4_1.png",
+                    "answer1": "12",
+                    "answer2": "B",
+                    "num_limit": 20,
+                    "multi_lines": null,
+                    "unit": "cm",
+                    "extra_data": {
+                        "answers": [
+                            {
+                                "answer": "12",
+                                "count": 1,
+                                "percent": 100.0
+                            }
+                        ],
+                        "total": 1,
+                        "most_answer": {
+                            "answer": "12",
+                            "count": 1,
+                            "percent": 100.0
+                        },
+                        "least_answer": {
+                            "answer": "12",
+                            "count": 1,
+                            "percent": 100.0
+                        },
+                        "average": 12.0
+                    }
+                }
+            ]
         },
-        {
-            "question_id": "2",
-            "answer": "AB"
-        },
-        {
-            "question_id": "3",
-            "answer": "3"
-        },
-        {
-            "question_id": "4",
-            "answer": "D:/static/media/questionnaire/temp/answer_cache/4_1.png"
-        },
-        {
-            "question_id": "5",
-            "answer": "5"
-        },
-        {
-            "question_id": "6",
-            "answer": "4"
-        },
-        {
-            "question_id": "7",
-            "answer": "4"
-        },
-        {
-            "question_id": "8",
-            "answer": "4"
-        },
-        {
-            "question_id": "9",
-            "answer": "12"
-        }
-
-    ]
+        "answer_sheets": [
+            {
+                "answer_sheet_id": 11,
+                "questionnaire_id": 1,
+                "answerer_id": 2,
+                "submit_time": "2023-05-20T11:56:26.279Z",
+                "duration": 12345,
+                "score": 10,
+                "state": 1,
+                "answers": [
+                    {
+                        "answer_sheet_id": 11,
+                        "question_id": 1,
+                        "question_order": 1,
+                        "answer": "1",
+                        "answer2": null,
+                        "answer5": null,
+                        "score": 0
+                    },
+                    {
+                        "answer_sheet_id": 11,
+                        "question_id": 2,
+                        "question_order": 2,
+                        "answer": "AB",
+                        "answer2": null,
+                        "answer5": null,
+                        "score": 1
+                    },
+                    {
+                        "answer_sheet_id": 11,
+                        "question_id": 3,
+                        "question_order": 3,
+                        "answer": null,
+                        "answer2": "3",
+                        "answer5": null,
+                        "score": null
+                    },
+                    {
+                        "answer_sheet_id": 11,
+                        "question_id": 4,
+                        "question_order": 4,
+                        "answer": null,
+                        "answer2": null,
+                        "answer5": "D:/static/media//questionnaire/1/answer_sheet/11/answer/4/4_1.png",
+                        "score": null
+                    },
+                    {
+                        "answer_sheet_id": 11,
+                        "question_id": 5,
+                        "question_order": 5,
+                        "answer": "5",
+                        "answer2": null,
+                        "answer5": null,
+                        "score": 0
+                    },
+                    {
+                        "answer_sheet_id": 11,
+                        "question_id": 6,
+                        "question_order": 6,
+                        "answer": "4",
+                        "answer2": null,
+                        "answer5": null,
+                        "score": 0
+                    },
+                    {
+                        "answer_sheet_id": 11,
+                        "question_id": 7,
+                        "question_order": 7,
+                        "answer": "4",
+                        "answer2": null,
+                        "answer5": null,
+                        "score": 0
+                    },
+                    {
+                        "answer_sheet_id": 11,
+                        "question_id": 8,
+                        "question_order": 8,
+                        "answer": "4",
+                        "answer2": null,
+                        "answer5": null,
+                        "score": 0
+                    },
+                    {
+                        "answer_sheet_id": 11,
+                        "question_id": 9,
+                        "question_order": 9,
+                        "answer": "12",
+                        "answer2": null,
+                        "answer5": null,
+                        "score": 9
+                    }
+                ]
+            }
+        ]
+    },
+    "organization_num": 0
 }
