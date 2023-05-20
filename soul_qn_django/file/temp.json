@@ -1,185 +1,43 @@
 {
-  "token": "{{token}}",
-  "name": "这是一个考试形问卷",
-  "type": "1",
-  "public": "True",
-  "permission": "1",
-  "start_time": "2019-06-01 00:00:00",
-  "finish_time": "2024-12-31 23:59:59",
-  "duration": "3600",
-  "password": "password",
-  "title": "Olaf问卷",
-  "description": "啊？这是什么，描述？填一下",
-  "background_image": "D:/static/media/questionnaire/temp/edit_cache/3_1.png",
-  "header_image": "D:/static/media/questionnaire/temp/edit_cache/3_1.png",
-  "font_color": "#000000",
-  "header_font_color": "#000000",
-  "question_num_visible": "True",
-  "questions": [
-    {
-      "type": "1",
-      "description": "这是一个单选题",
-      "necessary": "True",
-      "surface": "这是一个单选题的题面",
-      "width": "100",
-      "order": "1",
-      "change_line":  "1",
-      "score": "1",
-      "content1": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "content2": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "video": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "image": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "answer1": "A",
-      "answer2": "B",
-      "num_limit": "20",
-      "multi_lines": "1",
-      "unit": "cm"
-    },
-    {
-      "type": "2",
-      "description": "这是一个多选题",
-      "necessary": "True",
-      "surface": "这是一个多选题的题面",
-      "width": "100",
-      "order": "2",
-      "change_line":  "1",
-      "score": "2",
-      "content1": "这A是A选项###这B是B选项###这C是C选项###这D是D选项###这E是E选项",
-      "content2": "这A是A选项###这B是B选项###这C是C选项###这D是D选项###这E是E选项",
-      "video": "D:/static/media/questionnaire/temp/edit_cache/6.png",
-      "image": "D:/static/media/questionnaire/temp/edit_cache/6.png",
-      "answer1": "ABC",
-      "answer2": "AB",
-      "num_limit": "20",
-      "multi_lines": "1",
-      "unit": "cm"
-    },{
-      "type": "3",
-      "description": "这是一个文本题",
-      "necessary": "True",
-      "surface": "这是一个文本题的题面",
-      "width": "100",
-      "order": "3",
-      "change_line":  "1",
-      "score": "3",
-      "content1": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "content2": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项吱吱吱吱吱吱吱吱吱吱吱吱吱吱吱吱吱吱吱",
-      "video": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "image": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "answer1": "AA",
-      "answer2": "你是个傻逼",
-      "num_limit": "20",
-      "multi_lines": "1",
-      "unit": "cm"
-    },{
-      "type": "4",
-      "description": "这是一个文件题",
-      "necessary": "True",
-      "surface": "这是一个文件题的题面",
-      "width": "100",
-      "order": "4",
-      "change_line":  "1",
-      "score": "4",
-      "content1": "这是A啊啊啊啊啊选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "content2": "这是A选项###这啊啊啊啊是B选项###这是C选项###这是D选项###这是E选项",
-      "video": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "image": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "answer1": null,
-      "answer2": null,
-      "num_limit": "20",
-      "multi_lines": "1",
-      "unit": "cm"
-    },{
-      "type": "5",
-      "description": "这是一个填空题",
-      "necessary": "True",
-      "surface": "这是一个填空题的题面",
-      "width": "100",
-      "order": "5",
-      "change_line":  "1",
-      "score": "1",
-      "content1": "这是A选项###这是B选项###这////是C选项###这是D选项###这是E选项",
-      "content2": "这是A选项###这是B选项###这是C选？？？？项###这是D选项###这是E选项",
-      "video": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "image": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "answer1": "AAAAA",
-      "answer2": "B",
-      "num_limit": "20",
-      "multi_lines": "1",
-      "unit": "cm"
-    },{
-      "type": "6",
-      "description": "这是一个下拉题",
-      "necessary": "True",
-      "surface": "这是一个下拉题的题面",
-      "width": "100",
-      "order": "6",
-      "change_line":  "1",
-      "score": "6",
-      "content1": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "content2": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "video": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "image": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "answer1": "A",
-      "answer2": "B",
-      "num_limit": "20",
-      "multi_lines": "1",
-      "unit": "cm"
-    },{
-      "type": "7",
-      "description": "这是一个数字题",
-      "necessary": "True",
-      "surface": "这是一个数字题的题面",
-      "width": "100",
-      "order": "7",
-      "change_line":  "1",
-      "score": "7",
-      "content1": "啊啊啊这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "content2": "这是A啊啊啊选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "video": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "image": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "answer1": "123",
-      "answer2": "321",
-      "num_limit": "20",
-      "multi_lines": "1",
-      "unit": "cm"
-    },{
-      "type": "8",
-      "description": "这是一个日期题",
-      "necessary": "True",
-      "surface": "这是一个日期题的题面",
-      "width": "100",
-      "order": "8",
-      "change_line":  "1",
-      "score": "8",
-      "content1": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "content2": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "video": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "image": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "answer1": "20031212",
-      "answer2": "B",
-      "num_limit": "20",
-      "multi_lines": "1",
-      "unit": "cm"
-    },
-    {
-      "type": "9",
-      "description": "这是一个评分题",
-      "necessary": "True",
-      "surface": "这是一个评分题的题面",
-      "width": "100",
-      "order": "9",
-      "change_line":  "1",
-      "score": "9",
-      "content1": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "content2": "这是A选项###这是B选项###这是C选项###这是D选项###这是E选项",
-      "video": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "image": "D:/static/media/questionnaire/temp/edit_cache/4.png",
-      "answer1": "12",
-      "answer2": "B",
-      "num_limit": "20",
-      "multi_lines": "1",
-      "unit": "cm"
-    }
-  ]
+    "token": "{{token}}",
+    "qn_id": "1",
+    "answers": [
+        {
+            "question_id": "1",
+            "answer": "1"
+        },
+        {
+            "question_id": "2",
+            "answer": "AB"
+        },
+        {
+            "question_id": "3",
+            "answer": "3"
+        },
+        {
+            "question_id": "4",
+            "answer": "D:/static/media/questionnaire/temp/answer_cache/4_1.png"
+        },
+        {
+            "question_id": "5",
+            "answer": "5"
+        },
+        {
+            "question_id": "6",
+            "answer": "4"
+        },
+        {
+            "question_id": "7",
+            "answer": "4"
+        },
+        {
+            "question_id": "8",
+            "answer": "4"
+        },
+        {
+            "question_id": "9",
+            "answer": "12"
+        }
+
+    ]
 }

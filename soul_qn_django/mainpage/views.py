@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from Qn.models import *
+from datetime import datetime
 import json
 import shutil
 
@@ -310,13 +311,30 @@ def copy_qn(request):
     return JsonResponse({'errno': 0, 'errmsg': '成功'})
 
 def open_qn(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
+    token = body.get("token")
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     qn_id = body.get("qn_id")
     if not qn_id:
-        return JsonResponse({'errno': 1001, 'errmsg': '问卷id不能为空'})
+        return JsonResponse({'errno': 1003, 'errmsg': '问卷id不能为空'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
-        return JsonResponse({'errno': 1002, 'errmsg': '问卷不存在'})
+        return JsonResponse({'errno': 1004, 'errmsg': '问卷不存在'})
     qn = Questionnaire.objects.get(id=qn_id)
+    organization_id = body.get("organization_id")
+    if organization_id:
+        if not Organization.objects.filter(id=organization_id).exists():
+            return JsonResponse({'errno': 1005, 'errmsg': '组织不存在'})
+        organization = Organization.objects.get(id=organization_id)
+        if not Organization_create_Questionnaire.objects.filter(organization=organization, questionnaire=qn).exists():
+            return JsonResponse({'errno': 1006, 'errmsg': '组织没有该问卷'})
+        if not Organization_2_User.objects.filter(organization=organization, user=user).exists():
+            return JsonResponse({'errno': 1007, 'errmsg': '用户没有权限'})
+        if Organization_2_User.objects.get(organization=organization, user=user).state <= 1:
+            return JsonResponse({'errno': 1008, 'errmsg': '用户没有权限'})
     qn.state = 1
     qn.release_time = datetime.now()
     qn.save()
@@ -324,14 +342,31 @@ def open_qn(request):
 
 
 def close_qn(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
+    token = body.get("token")
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     qn_id = body.get("qn_id")
     if not qn_id:
-        return JsonResponse({'errno': 1001, 'errmsg': '问卷id不能为空'})
+        return JsonResponse({'errno': 1003, 'errmsg': '问卷id不能为空'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
-        return JsonResponse({'errno': 1002, 'errmsg': '问卷不存在'})
+        return JsonResponse({'errno': 1004, 'errmsg': '问卷不存在'})
     qn = Questionnaire.objects.get(id=qn_id)
+    organization_id = body.get("organization_id")
+    if organization_id:
+        if not Organization.objects.filter(id=organization_id).exists():
+            return JsonResponse({'errno': 1005, 'errmsg': '组织不存在'})
+        organization = Organization.objects.get(id=organization_id)
+        if not Organization_create_Questionnaire.objects.filter(organization=organization, questionnaire=qn).exists():
+            return JsonResponse({'errno': 1006, 'errmsg': '组织没有该问卷'})
+        if not Organization_2_User.objects.filter(organization=organization, user=user).exists():
+            return JsonResponse({'errno': 1007, 'errmsg': '用户没有权限'})
+        if Organization_2_User.objects.get(organization=organization, user=user).state <= 1:
+            return JsonResponse({'errno': 1008, 'errmsg': '用户没有权限'})
     qn.state = 0
-    qn.finish_time = datetime.now()
+    qn.release_time = datetime.now()
     qn.save()
     return JsonResponse({'errno': 0, 'errmsg': '关闭成功'})

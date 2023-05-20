@@ -1,6 +1,5 @@
 import base64
 import os
-import shutil
 from datetime import datetime
 
 import requests
@@ -66,7 +65,7 @@ def preview_qn(request):
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     example_id = body.get("qn_id")
     if not example_id:
-        return JsonResponse({'errno': 1, 'errmsg': '无问卷模板'})
+        return JsonResponse({'errno': 1, 'errmsg': '无问卷模板', 'qn': {}})
     if not Questionnaire.objects.filter(public=True).filter(id=example_id).exists():
         return JsonResponse({'errno': 1003, 'errmsg': '问卷模板不存在'})
     example = Questionnaire.objects.get(id=example_id)
@@ -111,6 +110,13 @@ def edit_qn(request):
     qn = Questionnaire.objects.get(id=qn_id)
     if qn.collection_num != 0:
         return JsonResponse({'errno': 1005, 'errmsg': '问卷已被收集，不可编辑'})
+    organization_id = body.get("organization_id")
+    if organization_id:
+        if not Organization_2_User.objects.filter(
+                organization_id=organization_id).filter(user=user).exists():
+            return JsonResponse({'errno': 1006, 'errmsg': '用户权限错误'})
+        if Organization_2_User.objects.get(organization_id=organization_id, user=user).state <= 2:
+            return JsonResponse({'errno': 1006, 'errmsg': '用户权限错误'})
     return_qn = qn.info()
     questions = Question.objects.filter(questionnaire_id=qn).all()
     for question in questions:
@@ -193,6 +199,8 @@ def save_qn(request):
     qn_password = body.get("password")
     if not qn_password:
         qn_password = None
+    else:
+        qn_public = False
     qn_description = body.get("description")
     if not qn_description:
         qn_description = None
@@ -234,11 +242,12 @@ def save_qn(request):
                                           finish_time=qn_finish_time,
                                           start_time=qn_start_time, duration=qn_duration,
                                           password=qn_password, description=qn_description,
-                                          background_image=qn_background_image,
-                                          header_image=qn_header_image,
                                           font_color=qn_font_color,
                                           header_font_color=qn_header_font_color,
                                           question_num_visible=qn_question_num_visible)
+        qn.background_image = qn_background_image
+        qn.header_image = qn_header_image
+        qn.save()
     else:
         if not Questionnaire.objects.filter(id=qn_id).exists():
             return JsonResponse({'errno': 1006, 'errmsg': '问卷不存在'})
@@ -263,6 +272,12 @@ def save_qn(request):
         qn.save()
         for question in Question.objects.filter(questionnaire_id=qn_id).all():
             question.delete()
+    # qn_background_image = body.get("background_image")
+    # if qn_background_image:
+    #     os.remove(qn_background_image)
+    # qn_header_image = body.get("header_image")
+    # if qn_header_image:
+    #     os.remove(qn_header_image)
     questions = body.get("questions")
     for question in questions:
         question_type = question.get("type")
@@ -331,19 +346,38 @@ def save_qn(request):
             num_limit = None
         multi_lines = question.get("multi-lines")
         if not multi_lines:
-            multi_lines = None
+            multi_lines = 1
         unit = question.get("unit")
         if not unit:
             unit = None
-        question = Question.objects.create(questionnaire=qn, type=question_type,
-                                           description=question_description, necessary=question_necessary,
-                                           surface=question_surface, width=question_width,
-                                           order=question_order,
-                                           change_line=question_change_line, score=question_score,
-                                           content1=question_content1, content2=question_content2,
-                                           video=question_video, image=question_image,
-                                           answer1=question_answer1, answer2=question_answer2,
-                                           num_limit=num_limit, multi_lines=multi_lines, unit=unit)
+        question0 = Question.objects.create(questionnaire=qn, type=question_type,
+                                            description=question_description, necessary=question_necessary,
+                                            surface=question_surface, width=question_width,
+                                            order=question_order,
+                                            change_line=question_change_line, score=question_score,
+                                            content1=question_content1, content2=question_content2,
+                                            video=question_video, image=question_image,
+                                            answer1=question_answer1, answer2=question_answer2,
+                                            num_limit=num_limit, multi_lines=multi_lines, unit=unit)
+        question_video = question.get("video")
+        if question_video:
+            try:
+                os.remove(question_video)
+            except:
+                pass
+        question_image = question.get("image")
+        if question_image:
+            try:
+                os.remove(question_image)
+            except:
+                pass
+    if qn.type == 1:
+        score = 0
+        for question in Question.objects.filter(questionnaire_id=qn_id).all():
+            if question.score:
+                score += question.score
+        qn.score = score
+        qn.save()
     if not organization_id:
         if not User_create_Questionnaire.objects.filter(questionnaire_id=qn.id).exists():
             User_create_Questionnaire.objects.create(questionnaire=qn, user=user)
@@ -357,7 +391,4 @@ def save_qn(request):
             if temp.state == 2:
                 temp.state = 1
                 temp.save()
-    temp_file_path = settings.MEDIA_ROOT + "questionnaire/temp/edit_cache/"
-    # if os.path.exists(temp_file_path):
-    #     shutil.rmtree(temp_file_path)
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'qn_id': qn.id})

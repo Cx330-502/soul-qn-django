@@ -59,6 +59,7 @@ def decode_link(link):
 
 
 def questionnaire_qrcode_file_upload_to(instance, filename):
+    filename = os.path.basename(filename)
     path = 'questionnaire/' + str(instance.id) + '/file/QRcode/'
     path = os.path.join(settings.MEDIA_ROOT, path)
     os.makedirs(path, exist_ok=True)
@@ -69,6 +70,7 @@ def questionnaire_qrcode_file_upload_to(instance, filename):
 
 
 def questionnaire_background_image_file_upload_to(instance, filename):
+    filename = os.path.basename(filename)
     path = 'questionnaire/' + str(instance.id) + '/file/Background_image/'
     path = os.path.join(settings.MEDIA_ROOT, path)
     os.makedirs(path, exist_ok=True)
@@ -79,6 +81,7 @@ def questionnaire_background_image_file_upload_to(instance, filename):
 
 
 def questionnaire_header_image_file_upload_to(instance, filename):
+    filename = os.path.basename(filename)
     path = 'questionnaire/' + str(instance.id) + '/file/Header_image/'
     path = os.path.join(settings.MEDIA_ROOT, path)
     os.makedirs(path, exist_ok=True)
@@ -246,6 +249,16 @@ class Answer_sheet(models.Model):
                 'state': self.state,
                 'answers': []}
 
+def answer_file_upload_to(instance, filename):
+    filename = os.path.basename(filename)
+    path = os.path.join(settings.MEDIA_ROOT , 'questionnaire/' + str(instance.answer_sheet.questionnaire.id) +
+                        '/answer_sheet/'+ str(instance.answer_sheet.id) + '/' +
+                        'answer/'+str(instance.question.id) + '/')
+    os.makedirs(path, exist_ok=True)
+    path = os.path.join(path, filename)
+    while os.path.exists(path):
+        path = path.split(".")[0] + "_1." + path.split(".")[1]
+    return path
 
 class Question_answer(models.Model):
     # Question_answer表项，含问卷名和密码，均为字符串属性，并设置最大长度
@@ -255,7 +268,7 @@ class Question_answer(models.Model):
     answer2 = models.TextField("回答2", null=True)
     answer3 = models.IntegerField("回答3", null=True)
     answer4 = models.ImageField("回答4", null=True)
-    answer5 = models.FileField("回答5", null=True)
+    answer5 = models.FileField("回答5", null=True, upload_to=answer_file_upload_to)
     score = models.IntegerField("回答得分", null=True)
 
     def info(self):

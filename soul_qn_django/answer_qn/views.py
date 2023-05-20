@@ -1,13 +1,10 @@
 import base64
 import json
 import os
-import shutil
 from datetime import datetime
 
 from django.core.files.base import ContentFile
-from django.db.models import Sum
 from django.http import JsonResponse
-from django.shortcuts import render
 from Qn.models import *
 
 
@@ -46,6 +43,7 @@ def answer_qn(request):
     token = body.get('token')
     link = body.get('link')
     qn_id = body.get('qn_id')
+    password = body.get('password')
     if link:
         qn_id = decode_link(link)
     if not qn_id:
@@ -55,6 +53,14 @@ def answer_qn(request):
     qn = Questionnaire.objects.get(id=qn_id)
     if qn.state != 1:
         return JsonResponse({'errno': 1004, 'errmsg': '问卷未发布或已关闭'})
+    if qn.start_time is not None:
+        start_time = datetime.combine(qn.start_time, datetime.min.time())
+        if start_time > datetime.now():
+            return JsonResponse({'errno': 1008, 'errmsg': '问卷未开始'})
+    if qn.finish_time is not None:
+        finish_time = datetime.combine(qn.finish_time, datetime.min.time())
+        if finish_time < datetime.now():
+            return JsonResponse({'errno': 1009, 'errmsg': '问卷已结束'})
     user = None
     answer_sheet = None
     if qn.permission >= 1:
@@ -67,6 +73,10 @@ def answer_qn(request):
         organization = Organization_create_Questionnaire.objects.get(questionnaire=qn).organization
         if not Organization_2_User.objects.filter(organization=organization, answerer=user).exists():
             return JsonResponse({'errno': 1007, 'errmsg': '权限错误'})
+    if qn.password is not None and password is None:
+        return JsonResponse({'errno': 1010, 'errmsg': '请输入密码'})
+    if qn.password is not None and password is not None and qn.password != password:
+        return JsonResponse({'errno': 1011, 'errmsg': '密码错误'})
     return_qn = qn.info()
     questions = Question.objects.filter(questionnaire=qn).all()
     for question in questions:
@@ -89,12 +99,15 @@ def save_answers_file(request):
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
     token = body.get('token')
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     file = body.get('file')
     if not file:
-        return JsonResponse({'errno': 1002, 'errmsg': '文件不存在'})
+        return JsonResponse({'errno': 1003, 'errmsg': '文件不存在'})
     file_name = body.get('file_name')
     if not file_name:
-        return JsonResponse({'errno': 1003, 'errmsg': '文件名不存在'})
+        return JsonResponse({'errno': 1004, 'errmsg': '文件名不存在'})
     decoded_file = base64.b64decode(file)
     save_path = os.path.join(settings.MEDIA_ROOT, 'questionnaire/temp/answer_cache/')
     file_path = os.path.join(save_path, file_name)
@@ -152,6 +165,9 @@ def save_answers(request):
                     print(e)
                     answer1 = None
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer5=answer1)
+            answer1 = answer.get('answer')
+            if answer1:
+                os.remove(answer1)
     return JsonResponse({'errno': 0, 'errmsg': '保存成功'})
 
 
@@ -202,12 +218,14 @@ def submit_answers(request):
                     else:
                         score = question.score
                 elif type0 == 2:
-                    answer_list = question.answer2.split('###')
-                    answer_list2 = answer1.split('###')
+                    answer_list = list(question.answer1)
+                    answer_list2 = list(answer1)
                     for answer2 in answer_list2:
                         if answer2 not in answer_list:
                             score = 0
                             break
+                    if len(answer_list) == 0 :
+                        score = 0
                     if score is None:
                         if len(answer_list) != len(answer_list2):
                             score = question.score // 2
@@ -230,6 +248,9 @@ def submit_answers(request):
                     print(e)
                     answer1 = None
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer5=answer1)
+            answer1 = answer.get('answer')
+            if answer1:
+                os.remove(answer1)
     if qn.type == 1:
         answer_sheet.score = 0
         for answer in Question_answer.objects.filter(answer_sheet=answer_sheet):
@@ -237,7 +258,6 @@ def submit_answers(request):
                 answer_sheet.score += answer.score
     qn.collection_num += 1
     qn.save()
-    temp_file_path = settings.MEDIA_ROOT + "questionnaire/temp/edit_cache/"
-    # if os.path.exists(temp_file_path):
-    #     shutil.rmtree(temp_file_path)
+    answer_sheet.save()
+
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'score': answer_sheet.score})
