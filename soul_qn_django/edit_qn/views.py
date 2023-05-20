@@ -162,7 +162,7 @@ def save_qn(request):
         return JsonResponse({'errno': 1003, 'errmsg': '组织不存在'})
     qn_type = body.get("type")
     if not qn_type:
-        return JsonResponse({'errno': 1004, 'errmsg': '类型不能为空'})
+        return JsonResponse({'errno': 1004, 'errmsg': '问卷类型不能为空'})
     qn_public = body.get("public")
     if not qn_public:
         qn_public = True
@@ -174,7 +174,7 @@ def save_qn(request):
         qn_collection_num = 0
     qn_title = body.get("title")
     if not qn_title:
-        return JsonResponse({'errno': 1005, 'errmsg': '标题不能为空'})
+        return JsonResponse({'errno': 1005, 'errmsg': '问卷标题不能为空'})
     qn_state = body.get("state")
     if not qn_state:
         qn_state = 0
@@ -224,6 +224,9 @@ def save_qn(request):
     qn_header_font_color = body.get("header_font_color")
     if not qn_header_font_color:
         qn_header_font_color = None
+    qn_question_num_visible = body.get("question_num_visible")
+    if not qn_question_num_visible:
+        qn_question_num_visible = True
     if not qn_id:
         qn = Questionnaire.objects.create(type=qn_type, public=qn_public, permission=qn_permission,
                                           collection_num=qn_collection_num, title=qn_title,
@@ -234,7 +237,8 @@ def save_qn(request):
                                           background_image=qn_background_image,
                                           header_image=qn_header_image,
                                           font_color=qn_font_color,
-                                          header_font_color=qn_header_font_color)
+                                          header_font_color=qn_header_font_color,
+                                          question_num_visible=qn_question_num_visible)
     else:
         if not Questionnaire.objects.filter(id=qn_id).exists():
             return JsonResponse({'errno': 1006, 'errmsg': '问卷不存在'})
@@ -255,6 +259,7 @@ def save_qn(request):
         qn.header_image = qn_header_image
         qn.font_color = qn_font_color
         qn.header_font_color = qn_header_font_color
+        qn.question_num_visible = qn_question_num_visible
         qn.save()
         for question in Question.objects.filter(questionnaire_id=qn_id).all():
             question.delete()

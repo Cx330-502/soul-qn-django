@@ -63,6 +63,8 @@ def questionnaire_qrcode_file_upload_to(instance, filename):
     path = os.path.join(settings.MEDIA_ROOT, path)
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
+    while os.path.exists(path):
+        path = path.split(".")[0] + "_1." + path.split(".")[1]
     return path
 
 
@@ -71,6 +73,8 @@ def questionnaire_background_image_file_upload_to(instance, filename):
     path = os.path.join(settings.MEDIA_ROOT, path)
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
+    while os.path.exists(path):
+        path = path.split(".")[0] + "_1." + path.split(".")[1]
     return path
 
 
@@ -79,6 +83,8 @@ def questionnaire_header_image_file_upload_to(instance, filename):
     path = os.path.join(settings.MEDIA_ROOT, path)
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
+    while os.path.exists(path):
+        path = path.split(".")[0] + "_1." + path.split(".")[1]
     return path
 
 
@@ -179,6 +185,8 @@ def question_file_upload_to(instance, filename):
                         str(instance.order) + '/')
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
+    while os.path.exists(path):
+        path = path.split(".")[0] + "_1." + path.split(".")[1]
     return path
 
 

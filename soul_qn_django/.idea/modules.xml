@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../后端/extra_codes/base64转码/.idea/base64转码.iml" filepath="$PROJECT_DIR$/../后端/extra_codes/base64转码/.idea/base64转码.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/soul_qn_django.iml" filepath="$PROJECT_DIR$/.idea/soul_qn_django.iml" />
     </modules>
   </component>
