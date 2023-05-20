@@ -6,4 +6,8 @@ urlpatterns = [
     path('register', register),
     path('login', login),
     path('test_login', test_login),
+    path('organization/list_user', organization_list_user),
+    path('organization/invite', organization_invite),
+    path('organization/pass', organization_pass),
+    path('organization/kick', organization_kick)
 ]
