@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import JsonResponse
 from Qn.models import *
@@ -8,6 +9,130 @@ from django.core.files.base import ContentFile
 
 
 # Create your views here.
+
+
+def hello(request):
+    return JsonResponse({'message': 'Hello, world!'})
+
+
+#-1列出个人发布问卷 -2列出回答的问卷 -3列出回收站的问卷 >=0列出团体发布问卷
+def list_qn(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
+    body = json.loads(request.body)
+    token = body.get("token")
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
+    userid = user.id
+    current_status = body.get("current_status")
+    # -1：在个人发布的问卷页面 -2：在回答的问题页面 -3：在回收站页面 >=0：在组织发布的问卷页面（为组织编号）
+    if not current_status:
+        return JsonResponse({'errno': 1003, 'errmsg': '当前状态不能为空'})
+    if current_status == -1:
+        # 在个人发布的问卷页面查询已发布的问卷
+        user_questionnaire = User_create_Questionnaire.objects.filter(user=user)
+        # 转化成数组
+        list_questionnaire = list(user_questionnaire)
+        if len(list_questionnaire) == 0:
+            return JsonResponse({'errno': 1004, 'errmsg': '当前用户没有创建过问卷'})
+        questionnaire = []
+        for i in range(len(list_questionnaire)):
+            q = list_questionnaire[i].questionnaire
+            # 1表示已经发布
+            if q.state == 1:
+                questionnaire.append(q)
+        if len(questionnaire) == 0:
+            return JsonResponse({'errno': 1005, 'errmsg': '当前用户没有正在发布的问卷'})
+
+    elif current_status == -2:
+        # 在回答的问题页面
+        user_answer_questionnaire = Answer_sheet.objects.filter(answerer=user)
+        list_questionnaire = list(user_answer_questionnaire)
+        if len(list_questionnaire == 0):
+            return JsonResponse({'errno': 1006, 'errmsg': '当前用户没有已经作答的问卷'})
+        questionnaire = []
+        for i in range(len(list_questionnaire)):
+            q = list_questionnaire[i].questionnaire
+            questionnaire.append(q)
+
+    elif current_status == -3:
+        # 在回收站页面
+        user_delete_questionnaire = User_create_Questionnaire.objects.filter(user=user)
+        list_delete_questionnaire = list(user_delete_questionnaire)
+        if len(list_delete_questionnaire) == 0:
+            return JsonResponse({'errno': 1004, 'errmsg': '当前用户没有创建过问卷'})
+        questionnaire = []
+        for i in range(len(list_delete_questionnaire)):
+            q = list_delete_questionnaire[i].questionnaire
+            if q.state == -3:
+                questionnaire.append(q)
+        if len(questionnaire) == 0:
+            return JsonResponse({'errno': 1007, 'errmsg': '当前用户回收站中没有问卷'})
+
+    elif current_status >= 0:
+        # 在组织发布的问卷页面，current_status为组织id
+        organization = Organization.objects.get(id=current_status)
+        if not organization:
+            return JsonResponse({'errno': 1006, 'errmsg': '不存在这个组织'})
+        # 存在该组织，在组织创建问卷中取得QuerySet
+        organization_questionnaire = Organization_create_Questionnaire.objects.filter(organization=organization)
+        list_questionnaire = list(organization_questionnaire)
+        if len(list_questionnaire) == 0:
+            return JsonResponse({'errno': 1007, 'errmsg': '当前组织没有发布过问卷'})
+        questionnaire = []
+        for i in range(len(list_questionnaire)):
+            q = list_questionnaire[i].questionnaire
+            # 已发布
+            if q.state == 1:
+                questionnaire.append(q)
+        if len(questionnaire) == 0:
+            return JsonResponse({'errno': 1008, 'errmsg': '当前组织没有正在发布的问卷'})
+    info = []
+    for i in range(len(questionnaire)):
+        # 读当前用户创建的问卷id
+        info[i] = {
+            "name": questionnaire[i].name,
+            "type": questionnaire[i].type,
+            "public": questionnaire[i].public,
+            "permission": questionnaire[i].permission,
+            "collection_num": questionnaire[i].collection_num,
+            "state": questionnaire[i].state,
+            "release_time": questionnaire[i].release_time,
+            "finish_time": questionnaire[i].finish_time,
+            "start_time": questionnaire[i].start_time,
+            "duration": questionnaire[i].duration,
+            # "password": questionnaire[i].password,
+            "title": questionnaire[i].title,
+            "description": questionnaire[i].description,
+            "link": questionnaire[i].link,
+            "qr_code": questionnaire[i].qr_code
+        }
+    return JsonResponse({'errno': 0, 'errmsg': '查询问卷成功', 'list': info})
+def list_organization(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
+    body = json.loads(request.body)
+    token = body.get("token")
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
+    userid = user.id
+    # -1为审核已拒绝且不可再加入 0为审核中 所有大于0的值都说明当前用户已经加入组织
+    user_organization = Organization_2_User.objects.filter(user_id = userid, state__gt = 0)
+    list_user_organization = list(user_organization)
+    if len(list_user_organization) == 0:
+        return JsonResponse({'errno': 1003, 'errmsg': '当前用户没有加入任何组织'})
+
+    for i in range(len(list_user_organization)):
+        organization_id = list_user_organization[i].organization
+        organization = Organization.objects.get(id=organization_id)
+        list_user_organization[i] = {
+            "name": organization.name
+        }
+
+    return JsonResponse({'errno': 0, 'errmsg': '查询组织成功', 'list': list_user_organization})
+
 # 生成链接
 def generate_link(request):
     if request.method != "POST":
