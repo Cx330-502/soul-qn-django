@@ -86,6 +86,8 @@ def list_qn(request):
                 qn_list.append(q)
     return_list = []
     for qn in qn_list:
+        background_image = settings.MEDIA_ROOT + qn.background_image.url if qn.background_image else None
+        header_image = settings.MEDIA_ROOT + qn.header_image.url if qn.header_image else None
         return_list.append({
             "id": qn.id,
             "name": qn.name,
@@ -101,6 +103,8 @@ def list_qn(request):
             "password": encrypt(qn.password, key),
             "title": qn.title,
             "description": qn.description,
+            "background_image": background_image,
+            "header_image": header_image
         })
     return JsonResponse({'errno': 0, 'errmsg': '查询问卷成功', 'return_list': return_list})
 
