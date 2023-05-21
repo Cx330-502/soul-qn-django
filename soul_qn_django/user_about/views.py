@@ -246,3 +246,95 @@ def organization_kick(request):
                 return JsonResponse({'errno': 1010,'errmsg': '您的权限不允许'})
 
     return JsonResponse({'errno': 0, 'errmsg': '已经踢人成功'})
+
+def organization_grant(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
+    body = json.loads(request.body)
+    token = body.get("token")
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
+    organization_id = body.get("organization_id")
+    invitee_id = body.get("invitee_id")
+    level = body.get("level")
+    organization = Organization.objects.get(id=organization_id)
+    invitee = User.objects.get(id=invitee_id)
+    if not organization:
+        return JsonResponse({'errno': 1003, 'errmsg': '不存在您想要赋予用户权限的组织'})
+    if not invitee:
+        return JsonResponse({'errno': 1004, 'errmsg': '不存在您想要赋予权限的用户'})
+    organization2user = Organization_2_User.objects.get(organization=organization, user=user)
+    if not organization2user:
+        return JsonResponse({'errno': 1005, 'errmsg': '您还不在该组织中'})
+    permission = organization2user.state
+    if permission == 0 or permission == -1:
+        return JsonResponse({'errno': 1006, 'errmsg': '您还不在该组织中'})
+    organization2invitee = Organization_2_User.objects.get(organization=organization, user=invitee)
+    if not organization2invitee:
+        return JsonResponse({'errno': 1007, 'errmsg': '该用户还不在本组织中'})
+    if organization2invitee:
+        state = organization2invitee.state
+        if state == -1:
+            return JsonResponse({'errno': 1008, 'errmsg': '该用户已被拒绝加入本组织'})
+        elif state == 0:
+            return JsonResponse({'errno': 1009, 'errmsg': '该用户正在被审核'})
+    # 该用户已经加入本组织中
+    if level == 2:
+        if permission >= 3:
+            organization2invitee.state = level
+            organization2invitee.save()
+        else:
+            return JsonResponse({'errno': 1010, 'errmsg': '您的权限不够'})
+    elif level == 3:
+        if permission == 4:
+            organization2invitee.state = level
+            organization2invitee.save()
+        else:
+            return JsonResponse({'errno': 1010, 'errmsg': '您的权限不够'})
+
+    return JsonResponse({'errno': 0, 'errmsg': '已经成功赋予权限'})
+
+def organization_search(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
+    body = json.loads(request.body)
+    token = body.get("token")
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
+    organization_id = body.get("organization_id")
+    organization = Organization.objects.get(id = organization_id)
+    if not organization:
+        return JsonResponse({'errno': 1003, 'errmsg': '不存在您想要查询的组织'})
+    info = {
+        "name" : organization.name
+    }
+    return JsonResponse({'errno': 0, 'errmsg': '查询信息成功', 'info': info})
+
+def organization_disband(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
+    body = json.loads(request.body)
+    token = body.get("token")
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
+    organization_id = body.get("organization_id")
+    organization = Organization.objects.get(id=organization_id)
+    if not organization:
+        return JsonResponse({'errno': 1003, 'errmsg': '不存在您想要解散的组织'})
+    organization2user = Organization_2_User.objects.get(organization=organization, user=user)
+    if not organization2user:
+        return JsonResponse({'errno': 1005, 'errmsg': '您还不在该组织中'})
+    permission = organization2user.state
+    if permission == 0 or permission == -1:
+        return JsonResponse({'errno': 1006, 'errmsg': '您还不在该组织中'})
+    if permission >=1 and permission <=3:
+        return JsonResponse({'errno': 1007, 'errmsg': '您的权限不够'})
+    if permission == 4:
+        try:
+            organization.delete()
+        except Exception as e:
+            print(e)
+    return JsonResponse({'errno': 0, 'errmsg': '解散组织成功'})
