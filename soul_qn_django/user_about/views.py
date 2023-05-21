@@ -114,8 +114,7 @@ def organization_list_user(request):
     user = auth_token(token)
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
-    userid = user.id
-    organization_id = body.get("id")
+    organization_id = body.get("organization_id")
     if not organization_id:
         return JsonResponse({'errno': 1003, 'errmsg': '组织id不能为空'})
     # 传入id对应的组织
@@ -274,7 +273,7 @@ def organization_list_unreviewed_list(request):
         return JsonResponse({'errno': 1006, 'errmsg': '您没有审核权限'})
     return_list = []
     for organization2user in Organization_2_User.objects.filter(organization=organization, state=0):
-        return_list.append({'id': organization2user.user.id, 'username': organization2user.user.name,
+        return_list.append({'id': organization2user.user.id, 'username': organization2user.user.username,
                             'email': organization2user.user.email})
     return JsonResponse({'errno': 0, 'errmsg': '列出未审核名单成功', 'list': return_list})
 
@@ -364,7 +363,7 @@ def organization_kick(request):
         return JsonResponse({'errno': 1009, 'errmsg': '该用户不在本组织中'})
     organization2user = Organization_2_User.objects.get(organization=organization, user=kicked)
     state2 = organization2user.state
-    if state2 > state:
+    if state2 >= state:
         return JsonResponse({'errno': 1010, 'errmsg': '您没有权限踢出该用户'})
     organization2user.state = -1
     organization2user.save()
@@ -392,7 +391,7 @@ def organization_grant(request):
     state = organization2user.state
     if state < 3:
         return JsonResponse({'errno': 1006, 'errmsg': '您没有权限'})
-    grant_level = body.get("grant_id")
+    grant_level = body.get("grant_level")
     grantee_id = body.get("grantee_id")
     if not grantee_id:
         return JsonResponse({'errno': 1007, 'errmsg': '被授权人id不能为空'})
@@ -447,12 +446,12 @@ def organization_search(request):
     if organization is not None:
         temp_list = Organization_2_User.objects.filter(organization = organization)
         for temp in temp_list:
-            if search_content in temp.user.username or search_content in temp.user.email or search_content in temp.user.id:
+            if search_content in temp.user.username or search_content in temp.user.email or search_content == temp.user.id:
                 return_list.append({"user_id": temp.user.id, "user_name": temp.user.username, "user_email": temp.user.email})
     else:
         temp_list = Organization_2_User.objects.filter(user = user)
         for temp in temp_list:
-            if search_content in temp.organization.name or search_content in temp.organization.id:
+            if search_content in temp.organization.name or search_content == temp.organization.id:
                 return_list.append({"organization_id": temp.organization.id, "organization_name": temp.organization.name})
     return JsonResponse({'errno': 0, 'errmsg': '查询信息成功', 'return_list': return_list})
 
@@ -495,22 +494,26 @@ def organization_approve_join(request):
     organization_id = body.get("organization_id")
     if organization_id is None:
         return JsonResponse({'errno': 1003, 'errmsg': '组织id不能为空'})
-    if not Organization_2_User.objects.filter(organization_id=organization_id, user=user).exists():
-        return JsonResponse({'errno': 1004, 'errmsg': '您已经未收到邀请'})
-    organization2user = Organization_2_User.objects.get(organization_id=organization_id, user=user)
+    if not Organization.objects.filter(id=organization_id).exists():
+        return JsonResponse({'errno': 1004, 'errmsg': '组织不存在'})
+    organization = Organization.objects.get(id=organization_id)
+    if not Organization_2_User.objects.filter(organization=organization, user=user).exists():
+        return JsonResponse({'errno': 1005, 'errmsg': '您未收到邀请'})
+    organization = Organization.objects.get(id=organization_id)
+    organization2user = Organization_2_User.objects.get(organization=organization, user=user)
     approved = body.get("approved")
     # 1 同意 0 拒绝
     if approved is None:
-        return JsonResponse({'errno': 1005, 'errmsg': '是否同意不能为空'})
+        return JsonResponse({'errno': 1006, 'errmsg': '是否同意不能为空'})
     if organization2user.state != -2:
-        return JsonResponse({'errno': 1005, 'errmsg': '您已经在组织中或无法再加入或已同意申请'})
+        return JsonResponse({'errno': 1007, 'errmsg': '您已经在组织中或无法再加入或已同意申请'})
     if approved == 0:
         organization2user.state = -1
         organization2user.save()
         return JsonResponse({'errno': 0, 'errmsg': '拒绝申请成功'})
     organization2user.state = 0
     organization2user.save()
-    for organization2user in Organization_2_User.objects.filter(organization_id=organization_id):
+    for organization2user in Organization_2_User.objects.filter(organization=organization):
         if organization2user.state >= 3:
             Message.objects.create(user=organization2user.user, message="用户" + user.username + "的加入申请待审核", type=4)
     return JsonResponse({'errno': 0, 'errmsg': '同意申请成功'})

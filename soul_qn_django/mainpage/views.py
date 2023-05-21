@@ -82,7 +82,7 @@ def list_qn(request):
         list_questionnaire = list(public_questionnaire)
         for i in range(len(list_questionnaire)):
             q = list_questionnaire[i]
-            if q.state != -3:
+            if q.state != -3 and q.public == 1:
                 qn_list.append(q)
     return_list = []
     for qn in qn_list:
@@ -98,7 +98,7 @@ def list_qn(request):
             "finish_time": qn.finish_time,
             "start_time": qn.start_time,
             "duration": qn.duration,
-            "password": decrypt(qn.password, key),
+            "password": encrypt(qn.password, key),
             "title": qn.title,
             "description": qn.description,
         })
