@@ -8,6 +8,7 @@ import shutil
 from django.core.files.base import ContentFile
 from cryptography.fernet import Fernet
 
+
 # Create your views here.
 
 
@@ -23,7 +24,7 @@ def decrypt(data, key):
     return decrypted_data.decode()
 
 
-#-1列出个人发布问卷 -2列出回答的问卷 -3列出回收站的问卷 >=0列出团体发布问卷
+# -1列出个人发布问卷 -2列出回答的问卷 -3列出回收站的问卷 >=0列出团体发布问卷
 def list_qn(request):
     key = b'2L0QpUEp09cO-9B8FhZ0eqkTLiw1mZDv6_U7nhGGZho='
     if request.method != "POST":
@@ -104,7 +105,9 @@ def list_qn(request):
             "title": qn.title,
             "description": qn.description,
             "background_image": background_image,
-            "header_image": header_image
+            "header_image": header_image,
+            "font_color": qn.font_color,
+            "header_font_color": qn.header_font_color,
         })
     return JsonResponse({'errno': 0, 'errmsg': '查询问卷成功', 'return_list': return_list})
 
@@ -119,7 +122,7 @@ def list_organization(request):
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     userid = user.id
     # -1为审核已拒绝且不可再加入 0为审核中 所有大于0的值都说明当前用户已经加入组织
-    user_organization = Organization_2_User.objects.filter(user = user)
+    user_organization = Organization_2_User.objects.filter(user=user)
     list_user_organization = list(user_organization)
     return_list = []
     for i in range(len(list_user_organization)):
@@ -131,6 +134,7 @@ def list_organization(request):
             })
 
     return JsonResponse({'errno': 0, 'errmsg': '查询组织成功', 'return_list': return_list})
+
 
 # 生成链接
 def generate_link(request):
@@ -255,6 +259,7 @@ def delete_qn(request):
 
 
 def search_qn(request):
+    key = b'2L0QpUEp09cO-9B8FhZ0eqkTLiw1mZDv6_U7nhGGZho='
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
@@ -312,21 +317,32 @@ def search_qn(request):
         if flag:
             background_image = settings.MEDIA_ROOT + qn.background_image.url if qn.background_image else None
             header_image = settings.MEDIA_ROOT + qn.header_image.url if qn.header_image else None
-            qn_info = {"title": qn.title, "id": qn.id,
-                       "description": qn.description,
-                       "background_image": background_image, "header_image": header_image,
-                       "font_color": qn.font_color,
-                       "header_font_color": qn.header_font_color,
-                       "name": qn.name, "state": qn.state,
-                       "start_time": qn.start_time,
-                       "finish_time": qn.finish_time,
-                       "release_time": qn.release_time
-                       }
+            qn_info = {
+                "id": qn.id,
+                "name": qn.name,
+                "type": qn.type,
+                "public": qn.public,
+                "permission": qn.permission,
+                "collection_num": qn.collection_num,
+                "state": qn.state,
+                "release_time": qn.release_time,
+                "finish_time": qn.finish_time,
+                "start_time": qn.start_time,
+                "duration": qn.duration,
+                "password": encrypt(qn.password, key),
+                "title": qn.title,
+                "description": qn.description,
+                "background_image": background_image,
+                "header_image": header_image,
+                "font_color": qn.font_color,
+                "header_font_color": qn.header_font_color,
+            }
             return_list.append(qn_info)
     return JsonResponse({'errno': 0, 'errmsg': '成功', 'qn_list': return_list})
 
 
 def sort_qn(request):
+    key = b'2L0QpUEp09cO-9B8FhZ0eqkTLiw1mZDv6_U7nhGGZho='
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
@@ -367,15 +383,25 @@ def sort_qn(request):
     for qn in qn_list:
         background_image = settings.MEDIA_ROOT + qn.background_image.url if qn.background_image else None
         header_image = settings.MEDIA_ROOT + qn.header_image.url if qn.header_image else None
-        qn_info = {"title": qn.title, "id": qn.id,
-                   "description": qn.description,
-                   "background_image": background_image, "header_image": header_image,
-                   "font_color": qn.font_color,
-                   "header_font_color": qn.header_font_color,
-                   "name": qn.name, "state": qn.state,
-                   "start_time": qn.start_time,
-                   "finish_time": qn.finish_time,
-                   "release_time": qn.release_time
+        qn_info = {
+            "id": qn.id,
+            "name": qn.name,
+            "type": qn.type,
+            "public": qn.public,
+            "permission": qn.permission,
+            "collection_num": qn.collection_num,
+            "state": qn.state,
+            "release_time": qn.release_time,
+            "finish_time": qn.finish_time,
+            "start_time": qn.start_time,
+            "duration": qn.duration,
+            "password": encrypt(qn.password, key),
+            "title": qn.title,
+            "description": qn.description,
+            "background_image": background_image,
+            "header_image": header_image,
+            "font_color": qn.font_color,
+            "header_font_color": qn.header_font_color,
                    }
         return_list.append(qn_info)
     return JsonResponse({'errno': 0, 'errmsg': '成功', 'qn_list': return_list})
