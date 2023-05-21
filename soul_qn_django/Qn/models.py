@@ -10,6 +10,7 @@ from django.db import models
 from django.conf import settings
 
 qn_url = 'http://127.0.0.1:3306/this_is_a_questionnaire/'
+organization_url = 'http://127.0.0.1:3306/this_is_a_organization/'
 
 
 def auth_token(token):
@@ -46,10 +47,15 @@ class User(models.Model):
 class Organization(models.Model):
     # Organization表项，含组织名和密码，均为字符串属性，并设置最大长度
     name = models.CharField("组织名", max_length=100)
+    link = models.CharField("组织链接", max_length=100, null=True)
+
+    def generate_link(self):
+        value = signing.dumps(self.id)
+        return organization_url + value
 
 
 # 解密问卷链接
-def decode_link(link):
+def decode_qn_link(link):
     value = link.split('/')[-1]
     try:
         qn_id = signing.loads(value)
@@ -57,6 +63,13 @@ def decode_link(link):
         return False
     return qn_id
 
+def decode_org_link(link):
+    value = link.split('/')[-1]
+    try:
+        org_id = signing.loads(value)
+    except signing.BadSignature:
+        return False
+    return org_id
 
 def questionnaire_qrcode_file_upload_to(instance, filename):
     filename = os.path.basename(filename)
@@ -280,3 +293,11 @@ class Question_answer(models.Model):
                 'answer2': self.answer2,
                 'answer5': answer5,
                 'score': self.score}
+
+class Message(models.Model):
+    # Message表项，含问卷名和密码，均为字符串属性，并设置最大长度
+    message = models.CharField("消息", max_length=200, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    type = models.IntegerField("消息类型", null=True)
+    # 1 被邀请 2 被踢出 3 权限更改(>0的权限) 4 组织解散 5 收到进入组织的申请 6 组织发布新问卷 7 申请结果
+

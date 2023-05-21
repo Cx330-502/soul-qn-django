@@ -32,9 +32,9 @@ def get_examples(request):
         if not Organization.objects.filter(id=organization_id).exists():
             return JsonResponse({'errno': 1004, 'errmsg': '组织不存在'})
         if not Organization_2_User.objects.filter(
-                organization_id=organization_id).filter(user=user).exists():
+                organization=organization_id).filter(user=user).exists():
             return JsonResponse({'errno': 1005, 'errmsg': '用户不在该组织'})
-        if Organization_2_User.objects.get(organization_id=organization_id, user=user).state < 2:
+        if Organization_2_User.objects.get(organization=organization_id, user=user).state < 2:
             return JsonResponse({'errno': 1006, 'errmsg': '无权限'})
     examples = Questionnaire.objects.filter(type=qn_type)[:10]
     examples_list = list(examples)
@@ -76,7 +76,7 @@ def preview_qn(request):
           'public': example.permission, 'name': example.name,
           'background_image': background_image, 'header_image': header_image,
           'font_color': example.font_color, 'header_font_color': example.header_font_color, }
-    questions = Question.objects.filter(questionnaire_id=example).all()
+    questions = Question.objects.filter(questionnaire=example).all()
     for question in questions:
         video_data = settings.MEDIA_ROOT + question.video.url if question.video else None
         image_data = settings.MEDIA_ROOT + question.image.url if question.image else None
@@ -113,12 +113,12 @@ def edit_qn(request):
     organization_id = body.get("organization_id")
     if organization_id:
         if not Organization_2_User.objects.filter(
-                organization_id=organization_id).filter(user=user).exists():
+                organization=organization_id).filter(user=user).exists():
             return JsonResponse({'errno': 1006, 'errmsg': '用户权限错误'})
-        if Organization_2_User.objects.get(organization_id=organization_id, user=user).state <= 2:
+        if Organization_2_User.objects.get(organization=organization_id, user=user).state <= 2:
             return JsonResponse({'errno': 1006, 'errmsg': '用户权限错误'})
     return_qn = qn.info()
-    questions = Question.objects.filter(questionnaire_id=qn).all()
+    questions = Question.objects.filter(questionnaire=qn).all()
     for question in questions:
         return_qn['questions'].append(question.info())
     return JsonResponse({'errno': 0, 'errmsg': '获取成功', 'qn': return_qn})
@@ -270,7 +270,7 @@ def save_qn(request):
         qn.header_font_color = qn_header_font_color
         qn.question_num_visible = qn_question_num_visible
         qn.save()
-        for question in Question.objects.filter(questionnaire_id=qn_id).all():
+        for question in Question.objects.filter(questionnaire=qn_id).all():
             question.delete()
     # qn_background_image = body.get("background_image")
     # if qn_background_image:
@@ -373,22 +373,26 @@ def save_qn(request):
                 pass
     if qn.type == 1:
         score = 0
-        for question in Question.objects.filter(questionnaire_id=qn_id).all():
+        for question in Question.objects.filter(questionnaire=qn).all():
             if question.score:
                 score += question.score
         qn.score = score
         qn.save()
     if not organization_id:
-        if not User_create_Questionnaire.objects.filter(questionnaire_id=qn.id).exists():
+        if not User_create_Questionnaire.objects.filter(questionnaire=qn.id).exists():
             User_create_Questionnaire.objects.create(questionnaire=qn, user=user)
     else:
-        if not Organization_create_Questionnaire.objects.filter(questionnaire_id=qn.id).exists():
+        if not Organization_create_Questionnaire.objects.filter(questionnaire=qn.id).exists():
             organization = Organization.objects.get(id=organization_id)
             Organization_create_Questionnaire.objects.create(questionnaire=qn,
                                                              organization=organization)
-            temp = Organization_2_User.objects.filter(organization_id=organization_id,
+            temp = Organization_2_User.objects.filter(organization=organization,
                                                       user=user).first()
             if temp.state == 2:
                 temp.state = 1
                 temp.save()
+            for temp in Organization_2_User.objects.filter(organization=organization_id).all():
+                if temp.state >=1:
+                    Message.objects.create(user=temp.user, message="您所在的组织发布了新的问卷调查，快去看看吧！", type=6)
+
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'qn_id': qn.id})

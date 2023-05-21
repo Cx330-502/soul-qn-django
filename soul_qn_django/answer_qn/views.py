@@ -45,7 +45,7 @@ def answer_qn(request):
     qn_id = body.get('qn_id')
     password = body.get('password')
     if link:
-        qn_id = decode_link(link)
+        qn_id = decode_qn_link(link)
     if not qn_id:
         return JsonResponse({'errno': 1002, 'errmsg': '问卷链接错误或无问卷编号'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
