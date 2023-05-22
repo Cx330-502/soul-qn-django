@@ -17,6 +17,7 @@ urlpatterns = [
     path('organization/search', organization_search),
     path('organization/disband', organization_disband),
     path('organization/approve_join', organization_approve_join),
+    path('organization/quit', organization_quit),
     path('message/list', message_list),
     path('message/delete', message_delete),
 ]

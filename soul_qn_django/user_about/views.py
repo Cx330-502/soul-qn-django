@@ -518,6 +518,37 @@ def organization_approve_join(request):
             Message.objects.create(user=organization2user.user, message="用户" + user.username + "的加入申请待审核", type=4)
     return JsonResponse({'errno': 0, 'errmsg': '同意申请成功'})
 
+def organization_quit(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
+    body = json.loads(request.body)
+    token = body.get("token")
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
+    organization_id = body.get("organization_id")
+    if organization_id is None:
+        return JsonResponse({'errno': 1003, 'errmsg': '组织id不能为空'})
+    if not Organization.objects.filter(id=organization_id).exists():
+        return JsonResponse({'errno': 1004, 'errmsg': '组织不存在'})
+    organization = Organization.objects.get(id=organization_id)
+    if not Organization_2_User.objects.filter(organization=organization, user=user).exists():
+        return JsonResponse({'errno': 1005, 'errmsg': '您不在组织中'})
+    organization2user = Organization_2_User.objects.get(organization=organization, user=user)
+    state = organization2user.state
+    if state < 1:
+        return JsonResponse({'errno': 1006, 'errmsg': '您不在组织中'})
+    if state == 4:
+        num = 0
+        for organization2user in Organization_2_User.objects.filter(organization=organization):
+            if organization2user.state ==4 :
+                num += 1
+        if num == 1:
+            return JsonResponse({'errno': 1007, 'errmsg': '您是组织唯一创造者，无法退出'})
+    organization2user.state = -1
+    organization2user.save()
+    return JsonResponse({'errno': 0, 'errmsg': '退出组织成功'})
+
 def message_list(request):
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
