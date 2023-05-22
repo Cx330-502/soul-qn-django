@@ -1,3 +1,4 @@
+import base64
 import re
 from base64 import b64encode, b64decode
 from hashlib import sha256
@@ -13,23 +14,17 @@ import user_about.extra_codes.captcha as captchaclass
 import json
 
 
-def encrypt(data, key):
-    f = Fernet(key)
-    decrypted_data = f.encrypt(data.encode())
-    return decrypted_data.decode()
+def encrypt(data):
+    return base64.b64decode(data).decode('utf-8')
 
 
-def decrypt(data, key):
-    f = Fernet(key)
-    decrypted_data = f.decrypt(data.encode())
-    return decrypted_data.decode()
-
+def decrypt(data):
+    return base64.b64encode(data).decode('utf-8')
 
 # Create your views here.
 # 发送验证码的视图函数，由前端检查验证码是否正确
 @csrf_exempt
 def captcha(request):
-    key = b'2L0QpUEp09cO-9B8FhZ0eqkTLiw1mZDv6_U7nhGGZho='
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
@@ -39,7 +34,7 @@ def captcha(request):
     except ValidationError:
         return JsonResponse({'errno': 1002, 'errmsg': '邮箱不符合规范'})
     verification = captchaclass.SendEmail(data=captchaclass.data, receiver=receiver_email).send_email()
-    verification = encrypt(verification, key)
+    verification = encrypt(verification)
     return JsonResponse({'errno': 0, 'errmsg': '验证码发送成功', 'verification': verification})
 
 

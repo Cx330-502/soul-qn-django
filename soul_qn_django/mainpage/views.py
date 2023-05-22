@@ -12,21 +12,16 @@ from cryptography.fernet import Fernet
 # Create your views here.
 
 
-def encrypt(data, key):
-    f = Fernet(key)
-    decrypted_data = f.encrypt(data.encode())
-    return decrypted_data.decode()
+def encrypt(data):
+    return base64.b64decode(data).decode('utf-8')
 
 
-def decrypt(data, key):
-    f = Fernet(key)
-    decrypted_data = f.decrypt(data.encode())
-    return decrypted_data.decode()
+def decrypt(data):
+    return base64.b64encode(data).decode('utf-8')
 
 
 # -1列出个人发布问卷 -2列出回答的问卷 -3列出回收站的问卷 >=0列出团体发布问卷
 def list_qn(request):
-    key = b'2L0QpUEp09cO-9B8FhZ0eqkTLiw1mZDv6_U7nhGGZho='
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
@@ -101,7 +96,7 @@ def list_qn(request):
             "finish_time": qn.finish_time,
             "start_time": qn.start_time,
             "duration": qn.duration,
-            "password": encrypt(qn.password, key),
+            "password": encrypt(qn.password),
             "title": qn.title,
             "description": qn.description,
             "background_image": background_image,
@@ -259,7 +254,6 @@ def delete_qn(request):
 
 
 def search_qn(request):
-    key = b'2L0QpUEp09cO-9B8FhZ0eqkTLiw1mZDv6_U7nhGGZho='
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
@@ -329,7 +323,7 @@ def search_qn(request):
                 "finish_time": qn.finish_time,
                 "start_time": qn.start_time,
                 "duration": qn.duration,
-                "password": encrypt(qn.password, key),
+                "password": encrypt(qn.password),
                 "title": qn.title,
                 "description": qn.description,
                 "background_image": background_image,
@@ -342,7 +336,6 @@ def search_qn(request):
 
 
 def sort_qn(request):
-    key = b'2L0QpUEp09cO-9B8FhZ0eqkTLiw1mZDv6_U7nhGGZho='
     if request.method != "POST":
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
@@ -395,7 +388,7 @@ def sort_qn(request):
             "finish_time": qn.finish_time,
             "start_time": qn.start_time,
             "duration": qn.duration,
-            "password": encrypt(qn.password, key),
+            "password": encrypt(qn.password),
             "title": qn.title,
             "description": qn.description,
             "background_image": background_image,
