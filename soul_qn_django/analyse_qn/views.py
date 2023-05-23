@@ -96,7 +96,7 @@ def export_data(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误或已过期'})
     qn_id = body.get('qn_id')
-    if not qn_id or not Questionnaire.objects.filter(id=qn_id).exists():
+    if qn_id is None or not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1003, 'errmsg': '问卷编号错误'})
     qn = Questionnaire.objects.get(id=qn_id)
     organization_id = body.get('organization_id')
@@ -226,7 +226,7 @@ def get_extra_data(question):
     extra_data = {}
     if question.type == 1 or question.type == 6:
         extra_data['options'] = []
-        if not question.content1:
+        if question.content1 is None:
             return extra_data
         temp_list = question.content1.split('###')
         for i in range(len(temp_list)):
@@ -256,7 +256,7 @@ def get_extra_data(question):
         extra_data['options'].sort(key=lambda x: x['option'])
     elif question.type == 2:
         extra_data['options'] = []
-        if not question.content1:
+        if question.content1 is None:
             return extra_data
         temp_list = question.content1.split('###')
         for i in range(len(temp_list)):

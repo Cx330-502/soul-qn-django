@@ -44,9 +44,9 @@ def answer_qn(request):
     link = body.get('link')
     qn_id = body.get('qn_id')
     password = body.get('password')
-    if link:
+    if link is not None:
         qn_id = decode_qn_link(link)
-    if not qn_id:
+    if qn_id is None:
         return JsonResponse({'errno': 1002, 'errmsg': '问卷链接错误或无问卷编号'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1003, 'errmsg': '问卷不存在'})
@@ -103,10 +103,10 @@ def save_answers_file(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     file = body.get('file')
-    if not file:
+    if file is None:
         return JsonResponse({'errno': 1003, 'errmsg': '文件不存在'})
     file_name = body.get('file_name')
-    if not file_name:
+    if file_name is None:
         return JsonResponse({'errno': 1004, 'errmsg': '文件名不存在'})
     decoded_file = base64.b64decode(file)
     save_path = os.path.join(settings.MEDIA_ROOT, 'questionnaire/temp/answer_cache/')
@@ -137,11 +137,11 @@ def save_answers(request):
     duration = body.get('duration')
     answer_sheet = Answer_sheet.objects.create(answerer=user, questionnaire=qn, duration=duration, state=0)
     answers = body.get('answers')
-    if not answers:
+    if answers is None:
         return JsonResponse({'errno': 1004, 'errmsg': '答案不存在'})
     for answer in answers:
         question_id = answer.get('question_id')
-        if not question_id:
+        if question_id is None:
             return JsonResponse({'errno': 1005, 'errmsg': '问题编号错误'})
         if not Question.objects.filter(id=question_id).exists():
             return JsonResponse({'errno': 1006, 'errmsg': '问题不存在'})
@@ -153,7 +153,7 @@ def save_answers(request):
         elif type0 == 3:
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer2=answer1)
         elif type0 == 4:
-            if not answer1:
+            if answer1 is None:
                 answer1 = None
             else:
                 try:
@@ -190,7 +190,7 @@ def submit_answers(request):
     answers = body.get('answers')
     for answer in answers:
         question_id = answer.get('question_id')
-        if not question_id:
+        if question_id is None:
             return JsonResponse({'errno': 1004, 'errmsg': '问题编号错误'})
         if not Question.objects.filter(id=question_id).exists():
             return JsonResponse({'errno': 1005, 'errmsg': '问题不存在'})
@@ -202,7 +202,7 @@ def submit_answers(request):
                                                submit_time=datetime.now())
     for answer in answers:
         question_id = answer.get('question_id')
-        if not question_id:
+        if question_id is None:
             return JsonResponse({'errno': 1004, 'errmsg': '问题编号错误'})
         if not Question.objects.filter(id=question_id).exists():
             return JsonResponse({'errno': 1005, 'errmsg': '问题不存在'})
@@ -236,7 +236,7 @@ def submit_answers(request):
         elif type0 == 3:
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer2=answer1)
         elif type0 == 4:
-            if not answer1:
+            if answer1 is None:
                 answer1 = None
             else:
                 try:

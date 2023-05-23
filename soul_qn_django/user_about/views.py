@@ -47,11 +47,11 @@ def register(request):
     username = body.get("username")
     password = body.get("password")
     email = body.get("email")
-    if not username:
+    if username is None:
         return JsonResponse({'errno': 1002, 'errmsg': '用户名不能为空'})
-    if not password:
+    if password is None:
         return JsonResponse({'errno': 1003, 'errmsg': '密码不能为空'})
-    if not email:
+    if email is None:
         return JsonResponse({'errno': 1004, 'errmsg': '邮箱不能为空'})
     if not re.match(r"^[a-zA-Z0-9_-]{4,16}$", username):
         return JsonResponse({'errno': 1005, 'errmsg': '用户名不符合规范'})
@@ -110,7 +110,7 @@ def organization_list_user(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     organization_id = body.get("organization_id")
-    if not organization_id:
+    if organization_id is None:
         return JsonResponse({'errno': 1003, 'errmsg': '组织id不能为空'})
     # 传入id对应的组织
     if not Organization.objects.filter(id=organization_id).exists():
@@ -146,7 +146,7 @@ def organization_create_organization(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     organization_name = body.get("organization_name")
-    if not organization_name:
+    if organization_name is None:
         return JsonResponse({'errno': 1003, 'errmsg': '组织名不能为空'})
     if Organization.objects.filter(name=organization_name).exists():
         return JsonResponse({'errno': 1004, 'errmsg': '组织名已存在'})
@@ -171,13 +171,13 @@ def organization_invite(request):
         if not decode_org_link(link):
             return JsonResponse({'errno': 1003, 'errmsg': '链接错误'})
         organization_id = decode_org_link(link)
-    if not organization_id:
+    if organization_id is None:
         return JsonResponse({'errno': 1004, 'errmsg': '组织id不能为空'})
     if not Organization.objects.filter(id=organization_id).exists():
         return JsonResponse({'errno': 1005, 'errmsg': '不存在您想要邀请的组织'})
     organization = Organization.objects.get(id=organization_id)
     invitee_id = body.get("invitee_id")
-    if not invitee_id:
+    if invitee_id is None:
         return JsonResponse({'errno': 1005, 'errmsg': '被邀请者不能为空'})
     invitee = None
     if User.objects.filter(id=invitee_id).exists():
@@ -186,7 +186,7 @@ def organization_invite(request):
         invitee = User.objects.get(username=invitee_id)
     if User.objects.filter(email=invitee_id).exists():
         invitee = User.objects.get(email=invitee_id)
-    if not invitee:
+    if invitee is None:
         return JsonResponse({'errno': 1006, 'errmsg': '不存在您想要邀请的用户'})
     if not Organization_2_User.objects.filter(organization=organization, user=user).exists():
         return JsonResponse({'errno': 1007, 'errmsg': '您不在该组织中'})
@@ -224,7 +224,7 @@ def organization_generate_link(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     organization_id = body.get("organization_id")
-    if not organization_id:
+    if organization_id is None:
         return JsonResponse({'errno': 1003, 'errmsg': '组织id不能为空'})
     if not Organization.objects.filter(id=organization_id).exists():
         return JsonResponse({'errno': 1004, 'errmsg': '不存在您想要邀请的组织'})
@@ -388,9 +388,9 @@ def organization_grant(request):
         return JsonResponse({'errno': 1006, 'errmsg': '您没有权限'})
     grant_level = body.get("grant_level")
     grantee_id = body.get("grantee_id")
-    if not grantee_id:
+    if grantee_id is None:
         return JsonResponse({'errno': 1007, 'errmsg': '被授权人id不能为空'})
-    if not grant_level:
+    if grant_level is None:
         return JsonResponse({'errno': 1008, 'errmsg': '被赋予权限不能为空'})
     if grant_level not in [1, 2, 3, 4]:
         return JsonResponse({'errno': 1009, 'errmsg': '被赋予权限不合法'})
@@ -435,7 +435,7 @@ def organization_search(request):
             return JsonResponse({'errno': 1003, 'errmsg': '不存在您想要查询的组织'})
         organization = Organization.objects.get(id=organization_id)
     search_content = body.get("search_content")
-    if not search_content:
+    if search_content is None:
         return JsonResponse({'errno': 1004, 'errmsg': '搜索内容不能为空'})
     return_list = []
     if organization is not None:

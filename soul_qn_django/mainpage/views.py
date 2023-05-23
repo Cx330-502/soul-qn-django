@@ -27,11 +27,11 @@ def list_qn(request):
     body = json.loads(request.body)
     token = body.get("token")
     user = auth_token(token)
-    if not user:
+    if user is None:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     current_status = body.get("current_status")
     # -1：在个人发布的问卷页面 -2：在回答的问题页面 -3：在回收站页面 >=0：在组织发布的问卷页面（为组织编号）, -4 在所有公开问卷页面
-    if not current_status:
+    if current_status is None:
         return JsonResponse({'errno': 1003, 'errmsg': '当前状态不能为空'})
     qn_list = []
     if current_status == -1:
@@ -96,7 +96,7 @@ def list_qn(request):
             "finish_time": qn.finish_time,
             "start_time": qn.start_time,
             "duration": qn.duration,
-            "password": encrypt(qn.password),
+            "password": encrypt(qn.password) if qn.password is not None else None,
             "title": qn.title,
             "description": qn.description,
             "background_image": background_image,
@@ -141,7 +141,7 @@ def generate_link(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     qn_id = body.get("qn_id")
-    if not qn_id:
+    if qn_id is None:
         return JsonResponse({'errno': 1003, 'errmsg': '问卷id不能为空'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1004, 'errmsg': '问卷不存在'})
@@ -161,7 +161,7 @@ def generate_qrcode(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     qn_id = body.get("qn_id")
-    if not qn_id:
+    if qn_id is None:
         return JsonResponse({'errno': 1003, 'errmsg': '问卷id不能为空'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1004, 'errmsg': '问卷不存在'})
@@ -185,7 +185,7 @@ def remove_qn(request):
     if method is None:
         return JsonResponse({'errno': 1003, 'errmsg': '方法(删除或恢复)不能为空'})
     qn_id = body.get("qn_id")
-    if not qn_id:
+    if qn_id is None:
         return JsonResponse({'errno': 1004, 'errmsg': '问卷id不能为空'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1005, 'errmsg': '问卷不存在'})
@@ -193,7 +193,7 @@ def remove_qn(request):
     if User_create_Questionnaire.objects.filter(user=user, questionnaire=qn).exists():
         return JsonResponse({'errno': 1006, 'errmsg': '用户没有权限'})
     organization_id = body.get("organization_id")
-    if organization_id:
+    if organization_id is not None:
         if not Organization.objects.filter(id=organization_id).exists():
             return JsonResponse({'errno': 1007, 'errmsg': '组织不存在'})
         organization = Organization.objects.get(id=organization_id)
@@ -223,29 +223,29 @@ def delete_qn(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     qn_id = body.get("qn_id")
-    if not qn_id:
+    if qn_id is None:
         return JsonResponse({'errno': 1003, 'errmsg': '问卷id不能为空'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1004, 'errmsg': '问卷不存在'})
     qn = Questionnaire.objects.get(id=qn_id)
     organization_id = body.get("organization_id")
-    if not organization_id:
+    if organization_id is not None:
+        if not Organization.objects.filter(id=organization_id).exists():
+            return JsonResponse({'errno': 1005, 'errmsg': '组织不存在'})
+        organization = Organization.objects.get(id=organization_id)
+        if not Organization_create_Questionnaire.objects.filter(organization=organization,
+                                                                questionnaire=qn).exists():
+            return JsonResponse({'errno': 1006, 'errmsg': '组织未发布该问卷'})
+        if Organization_2_User.objects.filter(organization=organization, user=user).exists():
+            return JsonResponse({'errno': 1007, 'errmsg': '用户不是该组织成员'})
+        orz_2_user = Organization_2_User.objects.get(organization=organization, user=user)
+        if orz_2_user.state <= 2:
+            return JsonResponse({'errno': 1008, 'errmsg': '用户没有权限'})
         qn.delete()
         path = settings.MEDIA_ROOT + '/questionnaire/' + str(qn_id)
         if os.path.exists(path):
             shutil.rmtree(path)
         return JsonResponse({'errno': 0, 'errmsg': '成功'})
-    if not Organization.objects.filter(id=organization_id).exists():
-        return JsonResponse({'errno': 1005, 'errmsg': '组织不存在'})
-    organization = Organization.objects.get(id=organization_id)
-    if not Organization_create_Questionnaire.objects.filter(organization=organization,
-                                                            questionnaire=qn).exists():
-        return JsonResponse({'errno': 1006, 'errmsg': '组织未发布该问卷'})
-    if Organization_2_User.objects.filter(organization=organization, user=user).exists():
-        return JsonResponse({'errno': 1007, 'errmsg': '用户不是该组织成员'})
-    orz_2_user = Organization_2_User.objects.get(organization=organization, user=user)
-    if orz_2_user.state <= 2:
-        return JsonResponse({'errno': 1008, 'errmsg': '用户没有权限'})
     qn.delete()
     path = settings.MEDIA_ROOT + '/questionnaire/' + str(qn_id)
     if os.path.exists(path):
@@ -258,11 +258,11 @@ def search_qn(request):
         return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
     body = json.loads(request.body)
     search_content = body.get("search_content")
-    if not search_content:
+    if search_content is None:
         return JsonResponse({'errno': 1003, 'errmsg': '搜索内容不能为空'})
     current_status = body.get("current_status")
     # -1:在个人发布的问卷页面 -2:在回答的问卷页面 -3:在回收站页面 >=0: 在组织发布的问卷页面(为组织编号)
-    if not current_status:
+    if current_status is None:
         return JsonResponse({'errno': 1004, 'errmsg': '当前状态不能为空'})
     all_qn_list = None
     qn_list = []
@@ -323,7 +323,7 @@ def search_qn(request):
                 "finish_time": qn.finish_time,
                 "start_time": qn.start_time,
                 "duration": qn.duration,
-                "password": encrypt(qn.password),
+                "password": encrypt(qn.password) if qn.password is not None else None,
                 "title": qn.title,
                 "description": qn.description,
                 "background_image": background_image,
@@ -345,15 +345,15 @@ def sort_qn(request):
     # 排序方法为3:按名称排序
     # 排序方法为4:按开启状态
     # 排序方法为5:按截止时间
-    if not method:
+    if method is None:
         return JsonResponse({'errno': 1002, 'errmsg': '排序方法不能为空'})
     method_type = body.get("method_type")
     # 排序方法类型为1:升序
     # 排序方法类型为2:降序
-    if not method_type:
+    if method_type is None:
         return JsonResponse({'errno': 1003, 'errmsg': '排序方法类型不能为空'})
     qn_id_list = body.get("qn_id_list")
-    if not qn_id_list:
+    if qn_id_list is None:
         return JsonResponse({'errno': 1004, 'errmsg': '问卷id列表不能为空'})
     qn_list = []
     for qn_id in qn_id_list:
@@ -388,7 +388,7 @@ def sort_qn(request):
             "finish_time": qn.finish_time,
             "start_time": qn.start_time,
             "duration": qn.duration,
-            "password": encrypt(qn.password),
+            "password": encrypt(qn.password) if qn.password is not None else None,
             "title": qn.title,
             "description": qn.description,
             "background_image": background_image,
@@ -409,7 +409,7 @@ def copy_qn(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     qn_id = body.get("qn_id")
-    if not qn_id:
+    if qn_id is None:
         return JsonResponse({'errno': 1002, 'errmsg': '问卷id不能为空'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1003, 'errmsg': '问卷不存在'})
@@ -504,7 +504,7 @@ def open_qn(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     qn_id = body.get("qn_id")
-    if not qn_id:
+    if qn_id is None:
         return JsonResponse({'errno': 1003, 'errmsg': '问卷id不能为空'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1004, 'errmsg': '问卷不存在'})
@@ -535,7 +535,7 @@ def close_qn(request):
     if not user:
         return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
     qn_id = body.get("qn_id")
-    if not qn_id:
+    if qn_id is None:
         return JsonResponse({'errno': 1003, 'errmsg': '问卷id不能为空'})
     if not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1004, 'errmsg': '问卷不存在'})
