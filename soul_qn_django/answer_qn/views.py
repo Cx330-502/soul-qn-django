@@ -80,7 +80,7 @@ def answer_qn(request):
     return_qn = qn.info()
     questions = Question.objects.filter(questionnaire=qn).all()
     for question in questions:
-        return_qn['questions'].append(question.info())
+        return_qn['questions'].append(question.info2())
     user = auth_token(token)
     if user is not None:
         if Answer_sheet.objects.filter(answerer=user, questionnaire=qn).exists():

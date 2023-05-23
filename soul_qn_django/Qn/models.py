@@ -145,6 +145,7 @@ class Questionnaire(models.Model):
                 'title': self.title, 'description': self.description,
                 'background_image': background_image, 'header_image': header_image,
                 'font_color': font_color, 'header_font_color': header_font_color,
+                'question_num_visible': self.question_num_visible,
                 'questions': []}
 
     # 生成问卷链接
@@ -239,6 +240,19 @@ class Question(models.Model):
                 'content1': self.content1, 'content2': self.content2,
                 'video': video, 'image': image,
                 'answer1': self.answer1, 'answer2': self.answer2,
+                'num_limit': self.num_limit, 'multi_lines': self.multi_lines,
+                'unit': self.unit}
+
+    def info2(self):
+        video = settings.MEDIA_ROOT + self.video.url if self.video else None
+        image = settings.MEDIA_ROOT + self.image.url if self.image else None
+        return {'id': self.id, 'type': self.type,
+                'description': self.description, 'questionnaire_id': self.questionnaire.id,
+                'necessary': self.necessary, 'surface': self.surface,
+                'width': self.width, 'order': self.order,
+                'change_line': self.change_line, 'score': self.score,
+                'content1': self.content1, 'content2': self.content2,
+                'video': video, 'image': image,
                 'num_limit': self.num_limit, 'multi_lines': self.multi_lines,
                 'unit': self.unit}
 

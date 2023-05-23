@@ -75,7 +75,8 @@ def preview_qn(request):
           'permission': example.permission, 'questions': [],
           'public': example.permission, 'name': example.name,
           'background_image': background_image, 'header_image': header_image,
-          'font_color': example.font_color, 'header_font_color': example.header_font_color, }
+          'font_color': example.font_color, 'header_font_color': example.header_font_color,
+          'question_num_visible': example.question_num_visible,'duration': example.duration}
     questions = Question.objects.filter(questionnaire=example).all()
     for question in questions:
         video_data = settings.MEDIA_ROOT + question.video.url if question.video else None

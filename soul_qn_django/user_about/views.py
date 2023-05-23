@@ -35,6 +35,7 @@ def captcha(request):
         return JsonResponse({'errno': 1002, 'errmsg': '邮箱不符合规范'})
     verification = captchaclass.SendEmail(data=captchaclass.data, receiver=receiver_email).send_email()
     verification = encrypt(verification)
+
     return JsonResponse({'errno': 0, 'errmsg': '验证码发送成功', 'verification': verification})
 
 
