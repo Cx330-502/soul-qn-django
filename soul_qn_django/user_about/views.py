@@ -15,11 +15,11 @@ import json
 
 
 def encrypt(data):
-    return base64.b64decode(data).decode('utf-8')
+    return base64.b64encode(data.encode('utf-8')).decode('utf-8')
 
 
 def decrypt(data):
-    return base64.b64encode(data).decode('utf-8')
+    return base64.b64decode(data.encode('utf-8')).decode('utf-8')
 
 # Create your views here.
 # 发送验证码的视图函数，由前端检查验证码是否正确
@@ -83,7 +83,7 @@ def login(request):
         return JsonResponse({'errno': 1002, 'errmsg': '用户名或邮箱不存在'})
     if user.password == password:
         token = user.create_token(3600 * 24)
-        return JsonResponse({'errno': 0, 'errmsg': '登录成功', 'token': token})
+        return JsonResponse({'errno': 0, 'errmsg': '登录成功', 'token': token, 'username': user.username, 'email' : user.email})
     return JsonResponse({'errno': 1003, 'errmsg': '密码错误'})
 
 

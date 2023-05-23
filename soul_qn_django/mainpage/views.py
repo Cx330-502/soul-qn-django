@@ -1,3 +1,5 @@
+import base64
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -13,11 +15,11 @@ from cryptography.fernet import Fernet
 
 
 def encrypt(data):
-    return base64.b64decode(data).decode('utf-8')
+    return base64.b64encode(data.encode('utf-8')).decode('utf-8')
 
 
 def decrypt(data):
-    return base64.b64encode(data).decode('utf-8')
+    return base64.b64decode(data.encode('utf-8')).decode('utf-8')
 
 
 # -1列出个人发布问卷 -2列出回答的问卷 -3列出回收站的问卷 >=0列出团体发布问卷
@@ -96,7 +98,10 @@ def list_qn(request):
             "finish_time": qn.finish_time,
             "start_time": qn.start_time,
             "duration": qn.duration,
+<<<<<<< Updated upstream
             "password": encrypt(qn.password) if qn.password is not None else None,
+=======
+>>>>>>> Stashed changes
             "title": qn.title,
             "description": qn.description,
             "background_image": background_image,
