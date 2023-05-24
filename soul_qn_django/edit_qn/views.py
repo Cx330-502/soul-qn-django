@@ -67,7 +67,7 @@ def preview_qn(request):
     example_id = body.get("qn_id")
     if example_id is None:
         return JsonResponse({'errno': 1, 'errmsg': '无问卷模板', 'qn': {}})
-    if not Questionnaire.objects.filter(public=True).filter(id=example_id).exists():
+    if not Questionnaire.objects.filter(id=example_id).exists():
         return JsonResponse({'errno': 1003, 'errmsg': '问卷模板不存在'})
     example = Questionnaire.objects.get(id=example_id)
     background_image = settings.MEDIA_ROOT + example.background_image.url if example.background_image else None
