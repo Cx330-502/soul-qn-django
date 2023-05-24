@@ -89,7 +89,7 @@ def preview_qn(request):
                                 'content1': question.content1, 'content2': question.content2,
                                 'video': video_data, 'image': image_data,
                                 'answer1': question.answer1, 'answer2': question.answer2,
-                                'num_limit': question.num_limit, 'multi-lines': question.multi_lines,
+                                'num_limit': question.num_limit, 'multi_lines': question.multi_lines,
                                 'unit': question.unit})
     return JsonResponse({'errno': 0, 'errmsg': '获取成功', 'qn': qn})
 
