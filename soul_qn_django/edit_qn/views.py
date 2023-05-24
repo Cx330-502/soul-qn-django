@@ -1,5 +1,6 @@
 import base64
 import os
+import urllib
 from datetime import datetime
 
 import requests
@@ -145,13 +146,28 @@ def save_qn_file(request):
     os.makedirs(save_path, exist_ok=True)
     file_path = os.path.join(save_path, file_name)
     while os.path.exists(file_path):
-        file_path = file_path.split(".")[0] + "_1." + file_path.split(".")[1]
+        file_path = '.' + file_path.split(".")[1] + "_1." + file_path.split(".")[2]
     with open(file_path, 'wb') as f:
         f.write(decoded_file)
     url = file_path
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'url': url})
 
-
+@csrf_exempt
+def read_qn_file(request):
+    if request.method != "POST":
+        return JsonResponse({'errno': 1001, 'errmsg': '请求方法错误'})
+    body = json.loads(request.body)
+    token = body.get("token")
+    user = auth_token(token)
+    if not user:
+        return JsonResponse({'errno': 1002, 'errmsg': 'token错误'})
+    file_url = body.get("file_url")
+    if file_url is None:
+        return JsonResponse({'errno': 1003, 'errmsg': '文件路径不能为空'})
+    with open(file_url,"rb") as file:
+        content = file.read()
+    encoded_content = base64.b64encode(content)
+    return JsonResponse({'errno': 0, 'errmsg': '读取成功', 'content': encoded_content.decode('utf-8')})
 # 保存问卷，若是新建问卷则返回前端无id，若是编辑问卷则返回前端id
 @csrf_exempt
 def save_qn(request):

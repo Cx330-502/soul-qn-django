@@ -24,7 +24,7 @@ SECRET_KEY = "django-insecure-z#h=5ip&=e*kr2bt1iq#5-=w4nf#1blq@sk=*a2j_vm=bc)o*&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['82.156.174.104']
 
 # Application definition
 
@@ -54,7 +54,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
 ROOT_URLCONF = "soul_qn_django.urls"
 
 TEMPLATES = [
@@ -134,7 +134,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = "static/"
-MEDIA_ROOT = "E:/static/media/"
+MEDIA_ROOT = "./static/media"
 
 
 # Default primary key field type

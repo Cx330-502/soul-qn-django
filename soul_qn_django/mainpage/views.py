@@ -98,10 +98,7 @@ def list_qn(request):
             "finish_time": qn.finish_time,
             "start_time": qn.start_time,
             "duration": qn.duration,
-<<<<<<< Updated upstream
             "password": encrypt(qn.password) if qn.password is not None else None,
-=======
->>>>>>> Stashed changes
             "title": qn.title,
             "description": qn.description,
             "background_image": background_image,
