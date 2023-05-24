@@ -364,7 +364,7 @@ def save_qn(request):
         num_limit = question.get("num_limit")
         if num_limit is None:
             num_limit = None
-        multi_lines = question.get("multi-lines")
+        multi_lines = question.get("multi_lines")
         if multi_lines is None:
             multi_lines = 1
         unit = question.get("unit")
