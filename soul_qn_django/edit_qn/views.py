@@ -119,6 +119,9 @@ def edit_qn(request):
             return JsonResponse({'errno': 1006, 'errmsg': '用户权限错误'})
         if Organization_2_User.objects.get(organization=organization_id, user=user).state <= 2:
             return JsonResponse({'errno': 1006, 'errmsg': '用户权限错误'})
+    else:
+        if not User_create_Questionnaire.objects.filter(user=user, questionnaire=qn).exists():
+            return JsonResponse({'errno': 1006, 'errmsg': '用户权限错误'})
     return_qn = qn.info()
     questions = Question.objects.filter(questionnaire=qn).all()
     for question in questions:
