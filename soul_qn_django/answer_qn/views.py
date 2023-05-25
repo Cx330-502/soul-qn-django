@@ -166,8 +166,6 @@ def save_answers(request):
                     answer1 = None
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer5=answer1)
             answer1 = answer.get('answer')
-            if answer1:
-                os.remove(answer1)
     return JsonResponse({'errno': 0, 'errmsg': '保存成功'})
 
 
@@ -249,8 +247,6 @@ def submit_answers(request):
                     answer1 = None
             Question_answer.objects.create(answer_sheet=answer_sheet, question=question, answer5=answer1)
             answer1 = answer.get('answer')
-            if answer1:
-                os.remove(answer1)
     if qn.type == 1:
         answer_sheet.score = 0
         for answer in Question_answer.objects.filter(answer_sheet=answer_sheet):

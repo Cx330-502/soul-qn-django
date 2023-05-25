@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 
 import jwt
@@ -6,6 +7,7 @@ import qrcode
 from django.conf import settings
 from django.core import signing
 from django.core.files import File
+from django.core.files.storage import FileSystemStorage
 from django.db import models
 from django.conf import settings
 
@@ -25,6 +27,19 @@ def auth_token(token):
         return False
     if User.objects.filter(id=payload['id']).exists():
         return User.objects.get(id=payload['id'])
+
+
+def copy_file(url):
+    if url is None or url == '':
+        return None
+    source_path = settings.MEDIA_ROOT + url
+    if not os.path.exists(source_path):
+        return None
+    target_path = os.path.join(settings.MEDIA_ROOT, 'questionnaire/temp/cache/' + os.path.dirname(url))
+    os.makedirs(target_path, exist_ok=True)
+    target_path = os.path.join(target_path, url.split('/')[-1])
+    shutil.copy2(source_path, target_path)
+    return target_path
 
 
 class User(models.Model):
@@ -63,6 +78,7 @@ def decode_qn_link(link):
         return False
     return qn_id
 
+
 def decode_org_link(link):
     value = link.split('/')[-1]
     try:
@@ -71,13 +87,14 @@ def decode_org_link(link):
         return False
     return org_id
 
+
 def questionnaire_qrcode_file_upload_to(instance, filename):
     filename = os.path.basename(filename)
     path = 'questionnaire/' + str(instance.id) + '/file/QRcode/'
-    path = os.path.join(settings.MEDIA_ROOT, path)
+
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
-    while os.path.exists(path):
+    while os.path.exists(settings.MEDIA_ROOT + path):
         path = path.split(".")[0] + "_1." + path.split(".")[1]
     return path
 
@@ -85,10 +102,9 @@ def questionnaire_qrcode_file_upload_to(instance, filename):
 def questionnaire_background_image_file_upload_to(instance, filename):
     filename = os.path.basename(filename)
     path = 'questionnaire/' + str(instance.id) + '/file/Background_image/'
-    path = os.path.join(settings.MEDIA_ROOT, path)
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
-    while os.path.exists(path):
+    while os.path.exists(settings.MEDIA_ROOT + path):
         path = path.split(".")[0] + "_1." + path.split(".")[1]
     return path
 
@@ -96,10 +112,10 @@ def questionnaire_background_image_file_upload_to(instance, filename):
 def questionnaire_header_image_file_upload_to(instance, filename):
     filename = os.path.basename(filename)
     path = 'questionnaire/' + str(instance.id) + '/file/Header_image/'
-    path = os.path.join(settings.MEDIA_ROOT, path)
+
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
-    while os.path.exists(path):
+    while os.path.exists(settings.MEDIA_ROOT + path):
         path = path.split(".")[0] + "_1." + path.split(".")[1]
     return path
 
@@ -132,8 +148,10 @@ class Questionnaire(models.Model):
     question_num_visible = models.BooleanField("题号是否可见", default=True)
 
     def info(self):
-        background_image = settings.MEDIA_ROOT + self.background_image.url if self.background_image else None
-        header_image = settings.MEDIA_ROOT + self.header_image.url if self.header_image else None
+        background_image = self.background_image.url if self.background_image else None
+        background_image = copy_file(background_image)
+        header_image = self.header_image.url if self.header_image else None
+        header_image = copy_file(header_image)
         font_color = self.font_color
         header_font_color = self.header_font_color
         return {'id': self.id, 'name': self.name,
@@ -196,13 +214,24 @@ class Organization_create_Questionnaire(models.Model):
     necessary = models.BooleanField("问卷是否必填")  # True表示必填,False表示非必填
 
 
-def question_file_upload_to(instance, filename):
+def question_image_file_upload_to(instance, filename):
     filename = os.path.basename(filename)
-    path = os.path.join(settings.MEDIA_ROOT + 'questionnaire/' + str(instance.questionnaire.id) + '/question/',
+    path = os.path.join('questionnaire/' + str(instance.questionnaire.id) + '/question/',
                         str(instance.order) + '/')
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
-    while os.path.exists(path):
+    while os.path.exists(settings.MEDIA_ROOT + path):
+        path = path.split(".")[0] + "_1." + path.split(".")[1]
+    return path
+
+
+def question_video_file_upload_to(instance, filename):
+    filename = os.path.basename(filename)
+    path = os.path.join('questionnaire/' + str(instance.questionnaire.id) + '/question/',
+                        str(instance.order) + '/')
+    os.makedirs(path, exist_ok=True)
+    path = os.path.join(path, filename)
+    while os.path.exists(settings.MEDIA_ROOT + path):
         path = path.split(".")[0] + "_1." + path.split(".")[1]
     return path
 
@@ -221,8 +250,8 @@ class Question(models.Model):
     score = models.IntegerField("问题分数", null=True)
     content1 = models.CharField("问题内容1", max_length=400, null=True)  # 选择题选项 以 "###" 分割
     content2 = models.TextField("问题内容2", null=True)  # 文本题阅读材料
-    video = models.FileField("问题视频", upload_to=question_file_upload_to, null=True, blank=True)
-    image = models.ImageField("问题图片", upload_to=question_file_upload_to, null=True, blank=True)
+    video = models.FileField("问题视频", upload_to=question_video_file_upload_to, null=True, blank=True)
+    image = models.ImageField("问题图片", upload_to=question_image_file_upload_to, null=True, blank=True)
     answer1 = models.CharField("问题答案1", max_length=200, null=True)  # 选择题答案 以 "###" 分割
     answer2 = models.TextField("问题答案2", null=True)  # 文本题答案
     num_limit = models.IntegerField("数字上限", null=True)
@@ -230,8 +259,10 @@ class Question(models.Model):
     unit = models.CharField("单位", max_length=20, null=True)  # 数字题单位
 
     def info(self):
-        video = settings.MEDIA_ROOT + self.video.url if self.video else None
-        image = settings.MEDIA_ROOT + self.image.url if self.image else None
+        video = self.video.url if self.video else None
+        video = copy_file(video)
+        image = self.image.url if self.image else None
+        image = copy_file(image)
         return {'id': self.id, 'type': self.type,
                 'description': self.description, 'questionnaire_id': self.questionnaire.id,
                 'necessary': self.necessary, 'surface': self.surface,
@@ -244,8 +275,10 @@ class Question(models.Model):
                 'unit': self.unit}
 
     def info2(self):
-        video = settings.MEDIA_ROOT + self.video.url if self.video else None
-        image = settings.MEDIA_ROOT + self.image.url if self.image else None
+        video = self.video.url if self.video else None
+        video = copy_file(video)
+        image = self.image.url if self.image else None
+        image = copy_file(image)
         return {'id': self.id, 'type': self.type,
                 'description': self.description, 'questionnaire_id': self.questionnaire.id,
                 'necessary': self.necessary, 'surface': self.surface,
@@ -276,16 +309,18 @@ class Answer_sheet(models.Model):
                 'state': self.state,
                 'answers': []}
 
+
 def answer_file_upload_to(instance, filename):
     filename = os.path.basename(filename)
-    path = os.path.join(settings.MEDIA_ROOT , 'questionnaire/' + str(instance.answer_sheet.questionnaire.id) +
-                        '/answer_sheet/'+ str(instance.answer_sheet.id) + '/' +
-                        'answer/'+str(instance.question.id) + '/')
+    path = os.path.join('questionnaire/' + str(instance.answer_sheet.questionnaire.id) +
+                        '/answer_sheet/' + str(instance.answer_sheet.id) + '/' +
+                        'answer/' + str(instance.question.id) + '/')
     os.makedirs(path, exist_ok=True)
     path = os.path.join(path, filename)
-    while os.path.exists(path):
+    while os.path.exists(settings.MEDIA_ROOT + path):
         path = path.split(".")[0] + "_1." + path.split(".")[1]
     return path
+
 
 class Question_answer(models.Model):
     # Question_answer表项，含问卷名和密码，均为字符串属性，并设置最大长度
@@ -299,7 +334,8 @@ class Question_answer(models.Model):
     score = models.IntegerField("回答得分", null=True)
 
     def info(self):
-        answer5 = settings.MEDIA_ROOT + self.answer5.url if self.answer5 else None
+        answer5 = self.answer5.url if self.answer5 else None
+        answer5 = copy_file(answer5)
         return {'answer_sheet_id': self.answer_sheet.id,
                 'question_id': self.question.id,
                 'question_order': self.question.order,
@@ -308,10 +344,10 @@ class Question_answer(models.Model):
                 'answer5': answer5,
                 'score': self.score}
 
+
 class Message(models.Model):
     # Message表项，含问卷名和密码，均为字符串属性，并设置最大长度
     message = models.CharField("消息", max_length=200, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     type = models.IntegerField("消息类型", null=True)
     # 1 被邀请 2 被踢出 3 权限更改(>0的权限) 4 组织解散 5 收到进入组织的申请 6 组织发布新问卷 7 申请结果
-

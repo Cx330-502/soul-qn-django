@@ -77,7 +77,7 @@ def preview_qn(request):
           'public': example.permission, 'name': example.name,
           'background_image': background_image, 'header_image': header_image,
           'font_color': example.font_color, 'header_font_color': example.header_font_color,
-          'question_num_visible': example.question_num_visible,'duration': example.duration}
+          'question_num_visible': example.question_num_visible, 'duration': example.duration}
     questions = Question.objects.filter(questionnaire=example).all()
     for question in questions:
         video_data = settings.MEDIA_ROOT + question.video.url if question.video else None
@@ -155,6 +155,7 @@ def save_qn_file(request):
     url = file_path
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'url': url})
 
+
 @csrf_exempt
 def read_qn_file(request):
     if request.method != "POST":
@@ -167,10 +168,12 @@ def read_qn_file(request):
     file_url = body.get("file_url")
     if file_url is None:
         return JsonResponse({'errno': 1003, 'errmsg': '文件路径不能为空'})
-    with open(file_url,"rb") as file:
+    with open(file_url, "rb") as file:
         content = file.read()
     encoded_content = base64.b64encode(content)
     return JsonResponse({'errno': 0, 'errmsg': '读取成功', 'content': encoded_content.decode('utf-8')})
+
+
 # 保存问卷，若是新建问卷则返回前端无id，若是编辑问卷则返回前端id
 @csrf_exempt
 def save_qn(request):
@@ -376,21 +379,23 @@ def save_qn(request):
                                             order=question_order,
                                             change_line=question_change_line, score=question_score,
                                             content1=question_content1, content2=question_content2,
-                                            video=question_video, image=question_image,
                                             answer1=question_answer1, answer2=question_answer2,
                                             num_limit=num_limit, multi_lines=multi_lines, unit=unit)
-        question_video = question.get("video")
-        if question_video:
-            try:
-                os.remove(question_video)
-            except:
-                pass
-        question_image = question.get("image")
-        if question_image:
-            try:
-                os.remove(question_image)
-            except:
-                pass
+        question0.video = question_video
+        question0.image = question_image
+        question0.save()
+        # question_video = question.get("video")
+        # if question_video:
+        #     try:
+        #         os.remove(question_video)
+        #     except:
+        #         pass
+        # question_image = question.get("image")
+        # if question_image:
+        #     try:
+        #         os.remove(question_image)
+        #     except:
+        #         pass
     if qn.type == 1:
         score = 0
         for question in Question.objects.filter(questionnaire=qn).all():
@@ -412,7 +417,7 @@ def save_qn(request):
                 temp.state = 1
                 temp.save()
             for temp in Organization_2_User.objects.filter(organization=organization_id).all():
-                if temp.state >=1:
+                if temp.state >= 1:
                     Message.objects.create(user=temp.user, message="您所在的组织发布了新的问卷调查，快去看看吧！", type=6)
 
     return JsonResponse({'errno': 0, 'errmsg': '保存成功', 'qn_id': qn.id})
