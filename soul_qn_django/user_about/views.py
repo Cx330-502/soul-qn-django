@@ -155,7 +155,7 @@ def organization_create_organization(request):
     organization.save()
     organization2user = Organization_2_User(organization=organization, user=user, state=4)
     organization2user.save()
-    return JsonResponse({'errno': 0, 'errmsg': '创建组织成功'})
+    return JsonResponse({'errno': 0, 'errmsg': '创建组织成功', 'id': organization.id})
 
 
 def organization_invite(request):
@@ -211,7 +211,7 @@ def organization_invite(request):
                 return JsonResponse({'errno': 1008, 'errmsg': '该用户已经在本组织中'})
     # 此时用户有权限、有受邀者和想要邀请的组织，此时state=0代表审核中
     invitation = Organization_2_User.objects.create(organization=organization, user=invitee, state=-2)
-    Message.objects.create(user=invitee, message="您已被邀请加入组织" + organization.name + "，请尽快处理", type=1)
+    Message.objects.create(user=invitee, message="您已被邀请加入组织" + organization.name + "，请尽快处理/" + organization.id, type=1)
     return JsonResponse({'errno': 0, 'errmsg': '已邀请'})
 
 
