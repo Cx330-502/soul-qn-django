@@ -350,4 +350,4 @@ class Message(models.Model):
     message = models.CharField("消息", max_length=200, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     type = models.IntegerField("消息类型", null=True)
-    # 1 被邀请 2 被踢出 3 权限更改(>0的权限) 4 组织解散 5 收到进入组织的申请 6 组织发布新问卷 7 申请结果
+    # 1 被邀请 2 被踢出 3 权限更改(>0的权限) 4 组织解散 5 收到进入组织的申请 6 组织发布新问卷 8 申请结果
