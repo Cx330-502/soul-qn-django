@@ -211,8 +211,6 @@ class Organization_create_Questionnaire(models.Model):
     # Organization_create_Questionnaire表项，含组织id和问卷id，均为字符串属性，并设置最大长度
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)
-    necessary = models.BooleanField("问卷是否必填")  # True表示必填,False表示非必填
-
 
 def question_image_file_upload_to(instance, filename):
     filename = os.path.basename(filename)
