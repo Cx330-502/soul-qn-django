@@ -511,7 +511,7 @@ def organization_approve_join(request):
     organization2user.save()
     for organization2user in Organization_2_User.objects.filter(organization=organization):
         if organization2user.state >= 3:
-            Message.objects.create(user=organization2user.user, message="用户" + user.username + "的加入申请待审核", type=4)
+            Message.objects.create(user=organization2user.user, message="用户" + user.username + "的加入申请待审核", type=5)
     return JsonResponse({'errno': 0, 'errmsg': '同意申请成功'})
 
 def organization_quit(request):
