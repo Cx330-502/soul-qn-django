@@ -2,7 +2,7 @@ import base64
 import json
 import os
 from datetime import datetime
-
+import urllib.parse
 from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from Qn.models import *
@@ -108,6 +108,7 @@ def save_answers_file(request):
     file_name = body.get('file_name')
     if file_name is None:
         return JsonResponse({'errno': 1004, 'errmsg': '文件名不存在'})
+    file_name = urllib.parse.quote(file_name)
     decoded_file = base64.b64decode(file)
     save_path = os.path.join(settings.MEDIA_ROOT, 'questionnaire/temp/answer_cache/')
     file_path = os.path.join(save_path, file_name)

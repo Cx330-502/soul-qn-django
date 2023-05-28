@@ -1,8 +1,7 @@
 import base64
 import os
-import urllib
 from datetime import datetime
-
+import urllib.parse
 import requests
 from django.core.files.base import ContentFile
 from django.http import JsonResponse
@@ -114,10 +113,13 @@ def edit_qn(request):
         return JsonResponse({'errno': 1005, 'errmsg': '问卷已被收集，不可编辑'})
     organization_id = body.get("organization_id")
     if organization_id:
+        if not Organization.objects.filter(id=organization_id).exists():
+            return  JsonResponse({'errno': 1007, 'errmsg': '组织不存在'})
+        organization = Organization.objects.get(id=organization_id)
         if not Organization_2_User.objects.filter(
-                organization=organization_id).filter(user=user).exists():
+                organization=organization,user=user).exists():
             return JsonResponse({'errno': 1006, 'errmsg': '用户权限错误'})
-        if Organization_2_User.objects.get(organization=organization_id, user=user).state <= 2:
+        if Organization_2_User.objects.get(organization=organization, user=user).state <= 2:
             return JsonResponse({'errno': 1006, 'errmsg': '用户权限错误'})
     else:
         if not User_create_Questionnaire.objects.filter(user=user, questionnaire=qn).exists():
@@ -144,6 +146,7 @@ def save_qn_file(request):
     file_name = body.get("file_name")
     if file_name is None:
         return JsonResponse({'errno': 1004, 'errmsg': '文件名不能为空'})
+    file_name = urllib.parse.quote(file_name)
     decoded_file = base64.b64decode(file)
     save_path = settings.MEDIA_ROOT + "questionnaire/temp/edit_cache/"
     os.makedirs(save_path, exist_ok=True)
