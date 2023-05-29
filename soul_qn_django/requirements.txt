@@ -1,6 +1,6 @@
 cryptography==39.0.1
 Django==4.1
-djangorestframework==3.14.0
+jieba==0.42.1
 numpy==1.23.5
 PyJWT==2.4.0
 PyMySQL==1.0.2
