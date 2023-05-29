@@ -358,7 +358,7 @@ def get_extra_data(question):
         for answer in Question_answer.objects.filter(question=question).all():
             answer = answer.answer
             total += 1
-            sum += int(answer)
+            sum += float(answer)
             flag = 0
             for answer0 in extra_data['answers']:
                 if answer0['answer'] == answer:
