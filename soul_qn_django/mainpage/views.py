@@ -148,6 +148,8 @@ def generate_link(request):
     if not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1004, 'errmsg': '问卷不存在'})
     qn = Questionnaire.objects.get(id=qn_id)
+    qn.state = 1
+    qn.save()
     if qn.link is None or qn.link == "":
         qn.link = qn.generate_link()
     return JsonResponse({'errno': 0, 'errmsg': '成功', 'link': qn.link})

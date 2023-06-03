@@ -200,7 +200,7 @@ def organization_invite(request):
         if organization2invitee:
             state = organization2invitee.state
             if state == -1:
-                return JsonResponse({'errno': 1006, 'errmsg': '该用户已被拒绝加入本组织'})
+                organization2invitee.delete()
             elif state == 0:
                 return JsonResponse({'errno': 1007, 'errmsg': '该用户的申请正在被审核'})
             elif state == -2:
@@ -209,7 +209,7 @@ def organization_invite(request):
                 return JsonResponse({'errno': 1008, 'errmsg': '该用户已经在本组织中'})
     # 此时用户有权限、有受邀者和想要邀请的组织，此时state=0代表审核中
     invitation = Organization_2_User.objects.create(organization=organization, user=invitee, state=-2)
-    Message.objects.create(user=invitee, message="您已被邀请加入组织" + organization.name + "，请尽快处理/" + organization.id, type=1)
+    Message.objects.create(user=invitee, message="您已被邀请加入组织" + organization.name + "，请尽快处理/" + str(organization.id), type=1)
     return JsonResponse({'errno': 0, 'errmsg': '已邀请'})
 
 
