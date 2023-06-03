@@ -1,5 +1,5 @@
 import json
-
+import jieba.analyse
 from Qn.models import *
 from django.conf import settings
 from django.http import JsonResponse
@@ -308,10 +308,19 @@ def get_extra_data(question):
     elif question.type == 3:
         extra_data['answers'] = []
         total = 0
+        extracted_sentences = ""
         for answer in Question_answer.objects.filter(question=question).all():
             extra_data['answers'].append({'answer': answer.answer2})
             total += 1
+            extracted_sentences = extracted_sentences + "     " + answer.answer2
         extra_data['total'] = total
+        extra_data['statistics'] = []
+        temp = jieba.analyse.extract_tags(extracted_sentences, topK=20, withWeight=True, allowPOS=())
+        for tuple0 in temp:
+            extra_data['statistics'].append({
+                'name': list(tuple0)[0],
+                'value': list(tuple0)[1]
+            })
     elif question.type == 4:
         extra_data['answers'] = []
         total = 0
