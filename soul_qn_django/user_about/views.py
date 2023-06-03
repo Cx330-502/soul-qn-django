@@ -181,8 +181,6 @@ def organization_invite(request):
     if invitee_id is None:
         return JsonResponse({'errno': 1005, 'errmsg': '被邀请者不能为空'})
     invitee = None
-    if User.objects.filter(id=invitee_id).exists():
-        invitee = User.objects.get(id=invitee_id)
     if User.objects.filter(username=invitee_id).exists():
         invitee = User.objects.get(username=invitee_id)
     if User.objects.filter(email=invitee_id).exists():
