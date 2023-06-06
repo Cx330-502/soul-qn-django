@@ -16,7 +16,7 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.idea/dataSources" />
     </content>
-    <orderEntry type="jdk" jdkName="D:\Code_about\Anaconda3\envs\django" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="django" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="base64转码" />
   </component>
