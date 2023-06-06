@@ -186,6 +186,9 @@ def submit_answers(request):
         if Answer_sheet.objects.filter(answerer=user, questionnaire=qn).exists():
             Answer_sheet.objects.filter(answerer=user, questionnaire=qn).delete()
     duration = body.get('duration')
+    if qn.type == 3:
+        if qn.questionnaire_total_num >= qn.collection_num:
+            return JsonResponse({'errno': 1007, 'errmsg': '问卷已达到收集上限'}) 
     answers = body.get('answers')
     for answer in answers:
         question_id = answer.get('question_id')
