@@ -21,21 +21,22 @@ def get_all_info(request):
     if not qn_id or not Questionnaire.objects.filter(id=qn_id).exists():
         return JsonResponse({'errno': 1003, 'errmsg': '问卷编号错误'})
     qn = Questionnaire.objects.get(id=qn_id)
-    organization_id = body.get('organization_id')
-    organization_num = 0
-    if organization_id:
-        if not Organization.objects.filter(id=organization_id).exists():
-            return JsonResponse({'errno': 1004, 'errmsg': '组织编号错误'})
-        organization = Organization.objects.get(id=organization_id)
-        if not Organization_2_User.objects.filter(user=user, organization=organization).exists():
-            return JsonResponse({'errno': 1005, 'errmsg': '无权限'})
-        if Organization_2_User.objects.get(user=user, organization=organization).state <= 2:
-            return JsonResponse({'errno': 1006, 'errmsg': '权限不足'})
-        for temp in Organization_2_User.objects.filter(organization=organization).all():
-            if temp.state >= 1:
-                organization_num += 1
-    elif not User_create_Questionnaire.objects.filter(user=user, questionnaire=qn).exists():
-        return JsonResponse({'errno': 1007, 'errmsg': '无权限'})
+    if qn.type != 2:
+        organization_id = body.get('organization_id')
+        organization_num = 0
+        if organization_id:
+            if not Organization.objects.filter(id=organization_id).exists():
+                return JsonResponse({'errno': 1004, 'errmsg': '组织编号错误'})
+            organization = Organization.objects.get(id=organization_id)
+            if not Organization_2_User.objects.filter(user=user, organization=organization).exists():
+                return JsonResponse({'errno': 1005, 'errmsg': '无权限'})
+            if Organization_2_User.objects.get(user=user, organization=organization).state <= 2:
+                return JsonResponse({'errno': 1006, 'errmsg': '权限不足'})
+            for temp in Organization_2_User.objects.filter(organization=organization).all():
+                if temp.state >= 1:
+                    organization_num += 1
+        elif not User_create_Questionnaire.objects.filter(user=user, questionnaire=qn).exists():
+            return JsonResponse({'errno': 1007, 'errmsg': '无权限'})
     all_info = {'qn': qn.info()}
     for question in qn.question_set.all():
         all_info['qn']['questions'].append(question.info())

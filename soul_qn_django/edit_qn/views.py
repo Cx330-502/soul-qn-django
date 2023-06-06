@@ -76,7 +76,8 @@ def preview_qn(request):
           'public': example.permission, 'name': example.name,
           'background_image': background_image, 'header_image': header_image,
           'font_color': example.font_color, 'header_font_color': example.header_font_color,
-          'question_num_visible': example.question_num_visible, 'duration': example.duration}
+          'question_num_visible': example.question_num_visible, 'duration': example.duration,
+          'questionnaire_total_num': example.questionnaire_total_num,}
     questions = Question.objects.filter(questionnaire=example).all()
     for question in questions:
         video_data = settings.MEDIA_ROOT + question.video.url if question.video else None
@@ -261,6 +262,9 @@ def save_qn(request):
     qn_question_num_visible = body.get("question_num_visible")
     if qn_question_num_visible is None:
         qn_question_num_visible = True
+    qn_total_num = body.get("total_num")
+    if qn_total_num is None:
+        qn_total_num = None
     if qn_id is None:
         qn = Questionnaire.objects.create(type=qn_type, public=qn_public, permission=qn_permission,
                                           collection_num=qn_collection_num, title=qn_title,
@@ -270,7 +274,9 @@ def save_qn(request):
                                           password=qn_password, description=qn_description,
                                           font_color=qn_font_color,
                                           header_font_color=qn_header_font_color,
-                                          question_num_visible=qn_question_num_visible)
+                                          question_num_visible=qn_question_num_visible,
+                                          questionnaire_total_num=qn_total_num,
+                                          )
         qn.background_image = qn_background_image
         qn.header_image = qn_header_image
         qn.save()
@@ -295,6 +301,7 @@ def save_qn(request):
         qn.font_color = qn_font_color
         qn.header_font_color = qn_header_font_color
         qn.question_num_visible = qn_question_num_visible
+        qn.questionnaire_total_num = qn_total_num
         qn.save()
         for question in Question.objects.filter(questionnaire=qn_id).all():
             question.delete()

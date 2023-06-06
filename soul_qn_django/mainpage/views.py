@@ -105,6 +105,7 @@ def list_qn(request):
             "header_image": header_image,
             "font_color": qn.font_color,
             "header_font_color": qn.header_font_color,
+            "questionnaire_total_num": qn.questionnaire_total_num,
         })
     return JsonResponse({'errno': 0, 'errmsg': '查询问卷成功', 'return_list': return_list})
 

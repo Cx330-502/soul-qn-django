@@ -146,6 +146,7 @@ class Questionnaire(models.Model):
     font_color = models.CharField("字体颜色", max_length=100, null=True)
     header_font_color = models.CharField("表单字体颜色", max_length=100, null=True)
     question_num_visible = models.BooleanField("题号是否可见", default=True)
+    questionnaire_total_num = models.IntegerField("问卷题目总数", null = True)
 
     def info(self):
         background_image = self.background_image.url if self.background_image else None
@@ -164,6 +165,7 @@ class Questionnaire(models.Model):
                 'background_image': background_image, 'header_image': header_image,
                 'font_color': font_color, 'header_font_color': header_font_color,
                 'question_num_visible': self.question_num_visible,
+                'questionnaire_total_num': self.questionnaire_total_num,
                 'questions': []}
 
     # 生成问卷链接
